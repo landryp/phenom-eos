@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rm -f dat/eos/*.csv
+rm -f dat/params/*.csv
+
+
+
