@@ -11,8 +11,8 @@ from crust import crust
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-p', '--eospath', default='../in/eos/', help='path to EoS data, DEFAULT="../eos/"', metavar='eospath')
-parser.add_option('-o', '--outpath', default='./', help='path to output data, DEFAULT="../tools/"', metavar='outpath')
-parser.add_option('-x', '--extension', default='dat', help='file extension for EoS data, DEFAULT="dat"', metavar='extension')
+parser.add_option('-o', '--outpath', default='./plt/', help='path to output data, DEFAULT="./plt/"', metavar='outpath')
+parser.add_option('-x', '--extension', default='csv', help='file extension for EoS data, DEFAULT="csv"', metavar='extension')
 
 opts, args = parser.parse_args()
 eospath = str(opts.eospath)
