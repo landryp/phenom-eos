@@ -3,7 +3,7 @@
 #__doc__ = 'Constructs a piecewise polytrope EoS from its parameters'
 #__usage__ = 'get_pwp.py log10p1 Gamma1 Gamma2 Gamma3'
 #__author__ = 'philippe.landry@ligo.org'
-#__date__ = '10-2018'
+#__date__ = '02-2019'
 
 import numpy as np
 

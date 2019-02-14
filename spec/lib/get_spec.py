@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
 #__doc__ = 'Constructs a spectral EoS from its parameters'
-#__usage__ = 'get_pwp.py g1 g2 g3 g4'
+#__usage__ = 'get_spec.py g0 g1 g2 g3'
 #__author__ = 'philippe.landry@ligo.org'
-#__date__ = '10-2018'
+#__date__ = '02-2019'
 
 import numpy as np
 import scipy.integrate as integrate
