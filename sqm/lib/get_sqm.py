@@ -9,7 +9,7 @@ import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interp
 
-def sqm(B, cqm2, stp=1e2, pmax=1e1, eps=1e-4, pts=10):
+def sqm(B, cqm2, stp=1e2, xmax=1e1, eps=1e-4, xi=-1.):
 
 # DEFINE CONSTANTS
 
@@ -20,49 +20,36 @@ def sqm(B, cqm2, stp=1e2, pmax=1e1, eps=1e-4, pts=10):
 
 # DEFINE CORE PARAMETERS
 
-	def mu(p): # total energy density
+	def p(x): # pressure
 	
-		return 4.*B**4 + p/cqm2
+		return rhonuc*np.exp(x)
+
+	def mu(x): # total energy density
+	
+		return 4.*B**4 + p(x)/cqm2
 		
-	def rho(p): # rest-mass energy density in units of central value
+	def rho(x): # rest-mass energy density
 	
-		integral, err = integrate.quad(lambda p1: 1./(mu(p1)+p1), pc, p)
+		integral, err = integrate.quad(lambda x1: p(x1)/(mu(x1)+p(x1)), xi, x)
 	
-		return np.exp(integral/cqm2)
+		return rhonuc*np.exp(integral/cqm2)  # note: rhonuc scale is wrong here
 
 # EXPORT EOS DATA
 
 	rhodat = []
 	pdat = []
 	mudat = []
-	xpts = []
 
-	xdat = np.linspace(eps,xmax,pts)
+	xdat = np.linspace(eps,xmax,stp)
 	
 	for x in xdat:
 	
-		ppt = p0*np.exp(x)
-				
-		if ppt > 0.:
+		ppt = p(x)
+		mupt = mu(x)
+		rhopt = rho(x)
 		
-			mupt = mu(x)
-		
-			if mupt > 0.:
-			
-				rhopt = rho(x)
-			
-				if rhopt > 0.:
-		
-					rhodat.append(rhopt*rhonuc) # baryon density in g/cm^3
-					pdat.append(ppt*rhonuc) # pressure in g/cm^3
-					mudat.append(mupt*rhonuc) # total energy density in g/cm^3
-					xpts.append(x)	
+		rhodat.append(rhopt) # baryon density in g/cm^3
+		pdat.append(ppt) # pressure in g/cm^3
+		mudat.append(mupt) # total energy density in g/cm^3
 
-	rhofunc = interp.interp1d(xpts,rhodat,kind='linear',bounds_error=False,fill_value=None)
-	pfunc = interp.interp1d(xpts,pdat,kind='linear',bounds_error=False,fill_value=None)
-	mufunc = interp.interp1d(xpts,mudat,kind='linear',bounds_error=False,fill_value=None)
-	
-	xdat = np.linspace(eps,xmax,stp)
-
-	return rhofunc(xdat), mufunc(xdat), pfunc(xdat)
-
+	return rhodat, mudat, pdat

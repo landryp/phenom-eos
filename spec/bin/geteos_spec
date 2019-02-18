@@ -12,7 +12,7 @@ parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
 parser.add_option('-o', '--outpath', default='./dat/', help='path to output data, DEFAULT="../dat/"', metavar='outpath')
 parser.add_option('-i', '--inpath', default='./in/', help='path to input parameters, DEFAULT="../in/"', metavar='inpath')
-parser.add_option('-p', '--paramsfile', default='specparams.in', help='name of piecewise polytrope parameters input file, DEFAULT="specparams.in"', metavar='paramsfile')
+parser.add_option('-p', '--paramsfile', default='specparams.in', help='name of spectral parameters input file, DEFAULT="specparams.in"', metavar='paramsfile')
 parser.add_option('-x', '--xmax', default=1e1, help='log maximum pressure to return (in units of crust-core interface enthalpy), DEFAULT=10', metavar='xmax')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
 
