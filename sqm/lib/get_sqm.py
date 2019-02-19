@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#__doc__ = 'Constructs a linearized strange quark matter EoS from its bag-model parameters'
+#__doc__ = 'Construct a linearized strange quark matter EoS from its bag-model parameters'
 #__usage__ = 'get_sqm.py B cqm2'
 #__author__ = 'philippe.landry@ligo.org'
 #__date__ = '02-2019'
@@ -8,48 +8,37 @@
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interp
+from constants import c, G, Msun, rhonuc
 
-def sqm(B, cqm2, stp=1e2, xmax=1e1, eps=1e-4, xi=-1.):
-
-# DEFINE CONSTANTS
-
-	c = 2.99792458e10 # speed of light in cgs
-	G = 6.67408e-8 # Newton's constant in cgs
-	Msun = 1.3271244e26/G # solar mass in cgs
-	rhonuc = 2.7e14 # nuclear density in cgs
+def sqm(B, cqm2, stp=1e2, pmax=1e17, eps=1e-4): # bag constant B in eV, SQM sound speed squared in c^2
 
 # DEFINE CORE PARAMETERS
 
-	def p(x): # pressure
+	def mu(p): # total energy density in g/cm^3 as a function of pressure in g/cm^3
 	
-		return rhonuc*np.exp(x)
-
-	def mu(x): # total energy density
-	
-		return 4.*B**4 + p(x)/cqm2
+		return 4.*B**4 + p/cqm2
 		
-	def rho(x): # rest-mass energy density
+	def rho(p): # rest-mass energy density in g/cm^3, matching rho and mu at surface p=0
 	
-		integral, err = integrate.quad(lambda x1: p(x1)/(mu(x1)+p(x1)), xi, x)
+		num = 4.**cqm2*(mu(p)+p)*cqm2
+		denom = cqm2*B**4
+		power = 1./(1.+cqm2)
 	
-		return rhonuc*np.exp(integral/cqm2)  # note: rhonuc scale is wrong here
+		return B**4*(num/denom)**power
 
 # EXPORT EOS DATA
 
 	rhodat = []
-	pdat = []
 	mudat = []
 
-	xdat = np.linspace(eps,xmax,stp)
+	pdat = np.logspace(np.log10(eps),np.log10(pmax),stp)
 	
-	for x in xdat:
+	for p in pdat:
 	
-		ppt = p(x)
-		mupt = mu(x)
-		rhopt = rho(x)
+		mupt = mu(p)
+		rhopt = rho(p)
 		
 		rhodat.append(rhopt) # baryon density in g/cm^3
-		pdat.append(ppt) # pressure in g/cm^3
 		mudat.append(mupt) # total energy density in g/cm^3
 
 	return rhodat, mudat, pdat

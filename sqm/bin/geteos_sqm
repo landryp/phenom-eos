@@ -1,5 +1,5 @@
 #!/usr/bin/python
-__doc__ = 'GETEOS_SQM -- save EoS data for specified SQM EoS'
+__doc__ = 'GETEOS_SQM -- save EoS data for strange quark matter EoS specified by its bag-model parameters'
 __usage__ = 'geteos_sqm'
 __author__ = 'philippe.landry@ligo.org'
 __date__ = '02-2019'
@@ -10,10 +10,10 @@ from get_sqm import sqm
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
-parser.add_option('-o', '--outpath', default='./dat/', help='path to output data, DEFAULT="../dat/"', metavar='outpath')
-parser.add_option('-i', '--inpath', default='./in/', help='path to input parameters, DEFAULT="../in/"', metavar='inpath')
-parser.add_option('-p', '--paramsfile', default='sqmparams.in', help='name of SQM parameters input file, DEFAULT="sqmparams.in"', metavar='paramsfile')
-parser.add_option('-x', '--xmax', default=1e1, help='maximum pressure to return, DEFAULT=10', metavar='xmax')
+parser.add_option('-o', '--outpath', default='./sqm/dat/', help='path to output data, DEFAULT="./sqm/dat/"', metavar='outpath')
+parser.add_option('-i', '--inpath', default='./sqm/in/', help='path to input parameters, DEFAULT="./sqm/in/"', metavar='inpath')
+parser.add_option('-f', '--paramsfile', default='sqmparams.in', help='name of SQM parameters input file OR comma-separated input parameters (e.g. 2500.,0.66), DEFAULT="sqmparams.in"', metavar='paramsfile')
+parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return, DEFAULT=1e17', metavar='pmax')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
 
 opts, args = parser.parse_args()
@@ -22,15 +22,25 @@ inpath = str(opts.inpath)
 paramsfile = str(opts.paramsfile)
 tag = str(opts.tag)
 num = float(opts.num)
-xmax = float(opts.xmax)
+pmax = float(opts.pmax)
 
 outfile1 = open(outpath+"eos/"+"sqm_"+tag+".csv","w")
 outfile2 = open(outpath+"params/"+"params_"+tag+".csv","w")
 
-sqmparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+params = paramsfile.split(',')
 
-B, cqm2 = [sqmparams['B'],sqmparams['cqm2']]
-rhodat, mudat, pdat = sqm(B, cqm2, num, xmax)
+if len(params)>1: # read parameters if entered manually
+
+	B = float(params[0])
+	cqm2 = float(params[1])
+
+else: # otherwise, read parameters from file
+
+	sqmparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+
+	B, cqm2 = [sqmparams['B'],sqmparams['cqm2']]
+
+rhodat, mudat, pdat = sqm(B, cqm2, num, pmax)
 
 outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
 outfile2.write('B,cqm2 \n')

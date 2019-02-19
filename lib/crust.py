@@ -6,7 +6,7 @@ from scipy.optimize import minimize_scalar
 
 rhonuc = 2.7e14
 
-def crust(eos,pts=1e3,diagnostic=False):
+def crust(eos,pts=1e3):
 
 	# LOAD EOS DATA
 
