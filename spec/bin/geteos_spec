@@ -1,5 +1,5 @@
 #!/usr/bin/python
-__doc__ = 'GETEOS_SPEC -- save EoS data for specified spectral EoS'
+__doc__ = 'GETEOS_SPEC -- save EoS data for spectral EoS specified by its parameters'
 __usage__ = 'geteos_spec'
 __author__ = 'philippe.landry@ligo.org'
 __date__ = '02-2019'
@@ -10,11 +10,13 @@ from get_spec import spec
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
-parser.add_option('-o', '--outpath', default='./dat/', help='path to output data, DEFAULT="../dat/"', metavar='outpath')
-parser.add_option('-i', '--inpath', default='./in/', help='path to input parameters, DEFAULT="../in/"', metavar='inpath')
-parser.add_option('-p', '--paramsfile', default='specparams.in', help='name of spectral parameters input file, DEFAULT="specparams.in"', metavar='paramsfile')
-parser.add_option('-x', '--xmax', default=1e1, help='log maximum pressure to return (in units of crust-core interface enthalpy), DEFAULT=10', metavar='xmax')
+parser.add_option('-o', '--outpath', default='./spec/dat/', help='path to output data, DEFAULT="./spec/dat/"', metavar='outpath')
+parser.add_option('-i', '--inpath', default='./spec/in/', help='path to input parameters, DEFAULT="./spec/in/"', metavar='inpath')
+parser.add_option('-f', '--paramsfile', default='specparams.in', help='name of spectral parameters input file OR comma-separated input parameters (e.g. 0.5,1.0,0.2,0.01), DEFAULT="specparams.in"', metavar='paramsfile')
+parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='pmax')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
+parser.add_option('-r', '--pref', default=0, help='reference pressure [g/cm^3] for spectral fit, DEFAULT=None', metavar='pref')
+parser.add_option('-m', '--muref', default=0, help='reference energy density [g/cm^3] for spectral fit, DEFAULT=None', metavar='muref')
 
 opts, args = parser.parse_args()
 outpath = str(opts.outpath)
@@ -22,15 +24,31 @@ inpath = str(opts.inpath)
 paramsfile = str(opts.paramsfile)
 tag = str(opts.tag)
 num = float(opts.num)
-xmax = float(opts.xmax)
+pmax = float(opts.pmax)
+pref = float(opts.pref)
+muref = float(opts.muref)
 
 outfile1 = open(outpath+"eos/"+"spec_"+tag+".csv","w")
 outfile2 = open(outpath+"params/"+"params_"+tag+".csv","w")
 
-specparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+params = paramsfile.split(',')
 
-g0, g1, g2, g3 = [specparams['gamma0'],specparams['gamma1'],specparams['gamma2'],specparams['gamma3']]
-rhodat, mudat, pdat = spec(g0, g1, g2, g3, num, xmax)
+if len(params)>1: # read parameters if entered manually
+
+	g0 = float(params[0])
+	g1 = float(params[1])
+	g2 = float(params[2])
+	g3 = float(params[3])
+
+else: # otherwise, read parameters from file
+
+	specparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+
+	g0, g1, g2, g3 = [specparams['gamma0'],specparams['gamma1'],specparams['gamma2'],specparams['gamma3']]
+	
+	pref, muref = [specparams['pref'],specparams['muref']]
+	
+rhodat, mudat, pdat = spec(g0, g1, g2, g3, pref, muref, num, pmax)
 
 outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
 outfile2.write('gamma0,gamma1,gamma2,gamma3 \n')

@@ -89,7 +89,7 @@ else:
 
 	plt.loglog(rhodat,pdat,lw=2,label=r'$p$')
 	plt.loglog(rhodat,mudat,lw=2,label=r'$\mu$')
-	plt.loglog(pdat,cs2units*cs2dat,lw=2,label=r'${c_s}^2$')
+	plt.loglog(rhodat,cs2units*cs2dat,lw=2,label=r'${c_s}^2$')
 	plt.xlabel(r'$\rho$', fontsize = 28)
 	plt.ylabel(label, fontsize = 28)
 

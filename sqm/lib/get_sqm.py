@@ -8,7 +8,6 @@
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interp
-from constants import c, G, Msun, rhonuc
 
 def sqm(B, cqm2, stp=1e2, pmax=1e17, eps=1e-4): # bag constant B in eV, SQM sound speed squared in c^2
 
@@ -38,7 +37,7 @@ def sqm(B, cqm2, stp=1e2, pmax=1e17, eps=1e-4): # bag constant B in eV, SQM soun
 		mupt = mu(p)
 		rhopt = rho(p)
 		
-		rhodat.append(rhopt) # baryon density in g/cm^3
 		mudat.append(mupt) # total energy density in g/cm^3
+		rhodat.append(rhopt) # baryon density in g/cm^3
 
 	return rhodat, mudat, pdat

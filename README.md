@@ -12,3 +12,9 @@ geteos_spec
 * Strange quark matter EoS (sqm) *
 
 geteos_sqm
+
+-----
+
+Plotting tool
+
+ploteos eos.csv

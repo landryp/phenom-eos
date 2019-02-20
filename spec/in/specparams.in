@@ -1,2 +1,2 @@
-gamma0, gamma1, gamma2, gamma3
-0.5, 1.0, 0.2, 0.01
+gamma0, gamma1, gamma2, gamma3, pref, muref
+0.9865, 0.111, -0.0301, 0.0022, 1.82e12, 2.05e14

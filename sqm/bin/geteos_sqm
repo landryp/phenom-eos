@@ -13,7 +13,7 @@ parser.add_option('-n', '--num', default=100, help='number of EoS data pts to re
 parser.add_option('-o', '--outpath', default='./sqm/dat/', help='path to output data, DEFAULT="./sqm/dat/"', metavar='outpath')
 parser.add_option('-i', '--inpath', default='./sqm/in/', help='path to input parameters, DEFAULT="./sqm/in/"', metavar='inpath')
 parser.add_option('-f', '--paramsfile', default='sqmparams.in', help='name of SQM parameters input file OR comma-separated input parameters (e.g. 2500.,0.66), DEFAULT="sqmparams.in"', metavar='paramsfile')
-parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return, DEFAULT=1e17', metavar='pmax')
+parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='pmax')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
 
 opts, args = parser.parse_args()
