@@ -6,15 +6,10 @@
 #__date__ = '02-2019'
 
 import numpy as np
+from constants import rhonuc, G, c, Msun
+rho0 = rhonuc
 
 def pwpoly(logp1, G1, G2, G3, stp=1e2, rhomax=1e1, eps=1e-4):
-
-# DEFINE CONSTANTS
-
-	c = 2.99792458e10 # speed of light in cgs
-	G = 6.67408e-8 # Newton's constant in cgs
-	Msun = 1.3271244e26/G # solar mass in cgs
-	rho0 = 2.7e14 # nuclear density in cgs
 
 # DEFINE SLY CRUST PARAMETERS
 

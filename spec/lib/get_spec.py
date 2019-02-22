@@ -8,7 +8,7 @@
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interp
-from constants import c, G, Msun, rhonuc
+from constants import rhonuc
 
 def spec(g0, g1, g2, g3, pref=0, muref=0, stp=1e2, pmax=1e17, xmin=-4.):
 

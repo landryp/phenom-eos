@@ -25,7 +25,7 @@ outpath = str(opts.outpath)
 units = str(opts.units)
 lims = str(opts.lims).split(',')
 xvar = str(opts.xvar)
-crust = opts.crust
+crustq = str(opts.crust)
 tag = str(opts.tag)
 eosname = str(args[0])
 
@@ -38,13 +38,13 @@ mudat = eos[:,2] # total energy density in units of g/cm^3
 label = r'$[\mathrm{g}/\mathrm{cm}^3]$'
 cs2units = 1e-4*c**2
 
-if crust == True:
+if crustq == 'True':
 	
 	rhodat = rhodat/rhonuc # rho in units of rhonuc
 	pdat = pdat/rhonuc # p in units of rhonuc
 	mudat = mudat/rhonuc # mu in units of rhonuc
 	
-	[rhodat,mudat,pdat] = crust(eos,pts=1e3) # affix low-density crust
+	[rhodat,mudat,pdat] = crust(eos,pts=5e2) # affix low-density crust
 	
 	label = r'$[\rho_{\mathrm{nuc}}]$'
 	cs2units = 1.

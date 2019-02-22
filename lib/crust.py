@@ -3,8 +3,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
-
-rhonuc = 2.7e14
+from constants import rhonuc
 
 def crust(eos,pts=1e3):
 
