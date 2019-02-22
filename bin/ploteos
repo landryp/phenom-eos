@@ -1,6 +1,6 @@
 #!/usr/bin/python
 __doc__ = 'PLOTEOS -- produce diagnostic plot of EoS data'
-__usage__ = 'ploteos EoS.csv'
+__usage__ = 'ploteos EoS1.csv,EoS2.csv,...'
 __author__ = 'philippe.landry@ligo.org'
 __date__ = '09-2018'
 
@@ -27,80 +27,93 @@ lims = str(opts.lims).split(',')
 xvar = str(opts.xvar)
 crustq = str(opts.crust)
 tag = str(opts.tag)
-eosname = str(args[0])
-
-eosloc = eospath+eosname
-eos = geteos(eosloc)
-rhodat = eos[:,0] # rest-mass energy density in units of g/cm^3
-pdat = eos[:,1] # pressure in units of g/cm^3
-mudat = eos[:,2] # total energy density in units of g/cm^3
-
-label = r'$[\mathrm{g}/\mathrm{cm}^3]$'
-cs2units = 1e-4*c**2
-
-if crustq == 'True':
-	
-	rhodat = rhodat/rhonuc # rho in units of rhonuc
-	pdat = pdat/rhonuc # p in units of rhonuc
-	mudat = mudat/rhonuc # mu in units of rhonuc
-	
-	[rhodat,mudat,pdat] = crust(eos,pts=5e2) # affix low-density crust
-	
-	label = r'$[\rho_{\mathrm{nuc}}]$'
-	cs2units = 1.
-	
-	if units != 'rhonuc': # convert back to g/cm^3 if desired
-	
-		rhodat = rhodat*rhonuc
-		pdat = pdat*rhonuc
-		mudat = mudat*rhonuc
-		
-		label = r'$[\mathrm{g}/\mathrm{cm}^3]$'
-		cs2units = 1e-4*c**2
-		
-else:
-
-	if units == 'rhonuc':
-	
-		rhodat = rhodat/rhonuc # rho in units of rhonuc
-		pdat = pdat/rhonuc # p in units of rhonuc
-		mudat = mudat/rhonuc # mu in units of rhonuc
-		
-		label = r'$[\rho_{\mathrm{nuc}}]$'
-		cs2units = 1.
-
-cs2dat = np.gradient(pdat)/np.gradient(mudat) # sound speed squared in units of c^2
+eosnames = str(args[0])
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 plt.figure(1,figsize=(10.,10.))
+styles = ['-','--',':','-.']
+style = 0
 
-if xvar=='p':
+# GET EACH EOS
 
-	plt.loglog(pdat,rhodat,lw=2,label=r'$\rho$')
-	plt.loglog(pdat,mudat,lw=2,label=r'$\mu$')
-	plt.loglog(pdat,cs2units*cs2dat,lw=2,label=r'${c_s}^2$')
-	plt.xlabel(r'$p$', fontsize = 28)
-	plt.ylabel(label, fontsize = 28)
+eosnames = eosnames.split(',')
 
-else:
+for eosname in eosnames:
 
-	plt.loglog(rhodat,pdat,lw=2,label=r'$p$')
-	plt.loglog(rhodat,mudat,lw=2,label=r'$\mu$')
-	plt.loglog(rhodat,cs2units*cs2dat,lw=2,label=r'${c_s}^2$')
-	plt.xlabel(r'$\rho$', fontsize = 28)
-	plt.ylabel(label, fontsize = 28)
+	eosloc = eospath+eosname
+	eos = geteos(eosloc)
+	rhodat = eos[:,0] # rest-mass energy density in units of g/cm^3
+	pdat = eos[:,1] # pressure in units of g/cm^3
+	mudat = eos[:,2] # total energy density in units of g/cm^3
 
-if len(lims)>1:
+	label = r'$[\mathrm{g}/\mathrm{cm}^3]$'
+	cs2units = 1e-4*c**2
 
-	xlims = [float(lims[0]),float(lims[1])]
-	ylims = [float(lims[2]),float(lims[3])]
+	if crustq == 'True':
 	
-	plt.xlim(xlims[0],xlims[1])
-	plt.ylim(ylims[0],ylims[1])
+		rhodat = rhodat/rhonuc # rho in units of rhonuc
+		pdat = pdat/rhonuc # p in units of rhonuc
+		mudat = mudat/rhonuc # mu in units of rhonuc
+	
+		[rhodat,mudat,pdat] = crust(eos,pts=5e2) # affix low-density crust
+	
+		label = r'$[\rho_{\mathrm{nuc}}]$'
+		cs2units = 1.
+	
+		if units != 'rhonuc': # convert back to g/cm^3 if desired
+	
+			rhodat = rhodat*rhonuc
+			pdat = pdat*rhonuc
+			mudat = mudat*rhonuc
+		
+			label = r'$[\mathrm{g}/\mathrm{cm}^3]$'
+			cs2units = 1e-4*c**2
+		
+	else:
 
+		if units == 'rhonuc':
+	
+			rhodat = rhodat/rhonuc # rho in units of rhonuc
+			pdat = pdat/rhonuc # p in units of rhonuc
+			mudat = mudat/rhonuc # mu in units of rhonuc
+		
+			label = r'$[\rho_{\mathrm{nuc}}]$'
+			cs2units = 1.
+
+	cs2dat = np.gradient(pdat)/np.gradient(mudat) # sound speed squared in units of c^2
+
+# MAKE PLOT
+
+	if xvar=='p':
+
+		plt.loglog(pdat,rhodat,lw=2,label=r'$\rho$',ls=styles[style])
+		plt.loglog(pdat,mudat,lw=2,label=r'$\mu$',ls=styles[style])
+		plt.loglog(pdat,cs2units*cs2dat,lw=2,label=r'${c_s}^2$',ls=styles[style])
+		plt.xlabel(r'$p$', fontsize = 28)
+		plt.ylabel(label, fontsize = 28)
+
+	else:
+
+		plt.loglog(rhodat,pdat,lw=2,label=r'$p$',ls=styles[style])
+		plt.loglog(rhodat,mudat,lw=2,label=r'$\mu$',ls=styles[style])
+		plt.loglog(rhodat,cs2units*cs2dat,lw=2,label=r'${c_s}^2$',ls=styles[style])
+		plt.xlabel(r'$\rho$', fontsize = 28)
+		plt.ylabel(label, fontsize = 28)
+
+	if len(lims)>1:
+
+		xlims = [float(lims[0]),float(lims[1])]
+		ylims = [float(lims[2]),float(lims[3])]
+	
+		plt.xlim(xlims[0],xlims[1])
+		plt.ylim(ylims[0],ylims[1])
+		
+	style = style+1
+
+plt.title(', '.join(eosnames))
 plt.legend(loc=0)
 plt.savefig(outpath+'eos_'+tag+'.png')
 
