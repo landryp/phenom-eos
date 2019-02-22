@@ -1,0 +1,85 @@
+#!/usr/bin/python
+__doc__ = 'GETEOS_CSS -- save EoS data for specified constant sound-speed EoS, stitched to chosen low-density EoS'
+__usage__ = 'geteos_css eos.csv'
+__author__ = 'philippe.landry@ligo.org'
+__date__ = '02-2019'
+
+import numpy as np
+from optparse import OptionParser
+from get_pwp import pwpoly
+
+# FIX BELOW THIS
+
+parser = OptionParser(usage=__usage__, description=__doc__)
+parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
+parser.add_option('-o', '--outpath', default='./pwp/dat/', help='path to output data, DEFAULT="./pwp/dat/"', metavar='outpath')
+parser.add_option('-i', '--inpath', default='./pwp/in/', help='path to input parameters, DEFAULT="./pwp/in/"', metavar='inpath')
+parser.add_option('-f', '--paramsfile', default='pwpparams.in', help='name of piecewise polytrope parameters input file (.in) OR comma-separated input parameters (e.g. 34.,1.,1.5,1.2), DEFAULT="pwpparams.in"', metavar='paramsfile')
+parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='pmax')
+parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
+parser.add_option('-d', '--divrho', default=0, help='manual specification of dividing rest-mass densities [g/cm^3] (e.g. 2.8e14,5.2e14), DEFAULT=0', metavar='divrho')
+
+opts, args = parser.parse_args()
+outpath = str(opts.outpath)
+inpath = str(opts.inpath)
+paramsfile = str(opts.paramsfile)
+tag = str(opts.tag)
+num = float(opts.num)
+pmax = float(opts.pmax)
+divrho = opts.divrho
+
+if divrho != 0:
+
+	divrho = str(divrho).split(',')
+	divrho = [float(div) for div in divrho]
+
+outfile1 = open(outpath+"eos/"+"pwp_"+tag+".csv","w")
+outfile2 = open(outpath+"params/"+"params_"+tag+".csv","w")
+
+params = paramsfile.split(',')
+
+if len(params)>1 : # read parameters if entered manually
+
+	log10p1 = float(params[0])
+	Gamma = params[1:]
+	Gamma = [float(gamma) for gamma in Gamma]
+	
+	seg = len(params)-1
+	Gname = ['Gamma'+str(i+1) for i in range(seg)]
+	
+else: # otherwise, read parameters from file
+
+	pwpparams = np.genfromtxt(inpath+paramsfile,delimiter=',',skip_header=1)
+	seg = len(pwpparams)-1
+	
+	pwpparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+	
+	log10p1 = pwpparams['log10p1']
+	
+	Gamma = np.zeros(seg)
+	Gname = []
+	for i in range(seg):
+	
+		Gname.append('Gamma'+str(i+1))
+		Gamma[i] = pwpparams[Gname[i]]
+	
+rhodat, mudat, pdat = pwpoly(log10p1, Gamma, divrho, num, pmax)
+
+header = ','.join(Gname)
+header = 'log10p1,'+header
+
+body = ','.join(str(gamma) for gamma in Gamma)
+body = str(log10p1)+','+body
+
+outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
+outfile2.write(header+' \n')
+outfile2.write(body+' \n')
+
+for i in range(len(rhodat)):
+
+	p = pdat[i]
+	logp = np.log(p)
+	mu = mudat[i]
+	rho = rhodat[i]
+
+	outfile1.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))

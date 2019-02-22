@@ -15,7 +15,7 @@ parser.add_option('-p', '--eospath', default='./dat/eos/', help='path to EoS dat
 parser.add_option('-o', '--outpath', default='./plt/', help='path to output data, DEFAULT="./plt/"', metavar='outpath')
 parser.add_option('-u', '--units', default='cgs', help='units for plot (cgs or rhonuc), DEFAULT="cgs"', metavar='units')
 parser.add_option('-l', '--lims', default='Auto', help='x- and y-range limits for plot (e.g. 1e12,1e17,1e12,1e17), DEFAULT=Auto', metavar='lims')
-parser.add_option('-x', '--xvar', default='rho', help='which variable to plot on x-axis (rho or p), DEFAULT="rho"', metavar='xvar')
+parser.add_option('-x', '--xvar', default='rho', help='which variable to plot on x-axis (rho, mu or p), DEFAULT="rho"', metavar='xvar')
 parser.add_option('-c', '--crust', default='False', help='append crust EoS or not, DEFAULT=False', metavar='crust')
 parser.add_option('-t', '--tag', default='diagnostic', help='tag for output data file, DEFAULT="diagnostic"', metavar='tag')
 
@@ -93,6 +93,14 @@ for eosname in eosnames:
 		plt.loglog(pdat,mudat,lw=2,label=r'$\mu$',ls=styles[style])
 		plt.loglog(pdat,cs2units*cs2dat,lw=2,label=r'${c_s}^2$',ls=styles[style])
 		plt.xlabel(r'$p$', fontsize = 28)
+		plt.ylabel(label, fontsize = 28)
+
+	if xvar=='mu':
+
+		plt.loglog(mudat,pdat,lw=2,label=r'$p$',ls=styles[style])
+		plt.loglog(mudat,rhodat,lw=2,label=r'$\rho$',ls=styles[style])
+		plt.loglog(mudat,cs2units*cs2dat,lw=2,label=r'${c_s}^2$',ls=styles[style])
+		plt.xlabel(r'$\mu$', fontsize = 28)
 		plt.ylabel(label, fontsize = 28)
 
 	else:
