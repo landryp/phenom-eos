@@ -8,7 +8,7 @@
 import numpy as np
 from constants import c
 
-def css(params, stp=1e2, pmax=1e17, pmin=1e1):
+def css(params, stp=1e2, pmax=1e17):
 
 	
 # DEFINE CORE PARAMETERS
@@ -34,7 +34,7 @@ def css(params, stp=1e2, pmax=1e17, pmin=1e1):
 	rhodat = []
 	mudat = []
 	
-	pdat = np.logspace(np.log10(pmin),np.log10(pmax),stp)
+	pdat = np.logspace(np.log10(ptr),np.log10(pmax),stp)
 	
 	for p in pdat:
 	

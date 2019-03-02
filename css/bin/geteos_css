@@ -6,80 +6,103 @@ __date__ = '02-2019'
 
 import numpy as np
 from optparse import OptionParser
-from get_pwp import pwpoly
-
-# FIX BELOW THIS
+from scipy.interpolate import interp1d
+from scipy.optimize import minimize_scalar
+from get_css import css
+from geteos import geteos
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
-parser.add_option('-o', '--outpath', default='./pwp/dat/', help='path to output data, DEFAULT="./pwp/dat/"', metavar='outpath')
-parser.add_option('-i', '--inpath', default='./pwp/in/', help='path to input parameters, DEFAULT="./pwp/in/"', metavar='inpath')
-parser.add_option('-f', '--paramsfile', default='pwpparams.in', help='name of piecewise polytrope parameters input file (.in) OR comma-separated input parameters (e.g. 34.,1.,1.5,1.2), DEFAULT="pwpparams.in"', metavar='paramsfile')
+parser.add_option('-o', '--outpath', default='./css/dat/', help='path to output data, DEFAULT="./css/dat/"', metavar='outpath')
+parser.add_option('-i', '--inpath', default='./css/in/', help='path to input parameters, DEFAULT="./css/in/"', metavar='inpath')
+parser.add_option('-e', '--eospath', default='./css/in/', help='path to low density EoS, DEFAULT="./css/in/"', metavar='eospath')
+parser.add_option('-f', '--paramsfile', default='cssparams.in', help='name of piecewise polytrope parameters input file (.in) OR comma-separated input parameters (e.g. 5e14,0.6,0.9), DEFAULT="cssparams.in"', metavar='paramsfile')
 parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='pmax')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
-parser.add_option('-d', '--divrho', default=0, help='manual specification of dividing rest-mass densities [g/cm^3] (e.g. 2.8e14,5.2e14), DEFAULT=0', metavar='divrho')
 
 opts, args = parser.parse_args()
 outpath = str(opts.outpath)
 inpath = str(opts.inpath)
+eospath = str(opts.eospath)
 paramsfile = str(opts.paramsfile)
 tag = str(opts.tag)
 num = float(opts.num)
 pmax = float(opts.pmax)
-divrho = opts.divrho
+loweos = str(args[0])
 
-if divrho != 0:
-
-	divrho = str(divrho).split(',')
-	divrho = [float(div) for div in divrho]
-
-outfile1 = open(outpath+"eos/"+"pwp_"+tag+".csv","w")
+outfile1 = open(outpath+"eos/"+"css_"+tag+".csv","w")
 outfile2 = open(outpath+"params/"+"params_"+tag+".csv","w")
 
 params = paramsfile.split(',')
 
 if len(params)>1 : # read parameters if entered manually
 
-	log10p1 = float(params[0])
-	Gamma = params[1:]
-	Gamma = [float(gamma) for gamma in Gamma]
-	
-	seg = len(params)-1
-	Gname = ['Gamma'+str(i+1) for i in range(seg)]
+	[ptr, Dmu, cqm2] = [float(param) for param in params]
 	
 else: # otherwise, read parameters from file
+	
+	cssparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+	
+	[ptr, Dmu, cqm2] = [cssparams['p_tr'],cssparams['Delta_e'],cssparams['cqm2']]
 
-	pwpparams = np.genfromtxt(inpath+paramsfile,delimiter=',',skip_header=1)
-	seg = len(pwpparams)-1
-	
-	pwpparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
-	
-	log10p1 = pwpparams['log10p1']
-	
-	Gamma = np.zeros(seg)
-	Gname = []
-	for i in range(seg):
-	
-		Gname.append('Gamma'+str(i+1))
-		Gamma[i] = pwpparams[Gname[i]]
-	
-rhodat, mudat, pdat = pwpoly(log10p1, Gamma, divrho, num, pmax)
+# CALCULATE TRANSITION ENERGY DENSITY FROM LOW-DENSITY EOS AT TRANSITION PRESSURE
 
-header = ','.join(Gname)
-header = 'log10p1,'+header
+eosloc = eospath+loweos
+eos = geteos(eosloc)
+lowrhodat = eos[:,0] # rest-mass energy density in units of g/cm^3
+lowpdat = eos[:,1] # pressure in units of g/cm^3
+lowmudat = eos[:,2] # total energy density in units of g/cm^3
 
-body = ','.join(str(gamma) for gamma in Gamma)
-body = str(log10p1)+','+body
+plowmin = lowpdat[0]
+mulow = interp1d(lowpdat,lowmudat,kind='linear',bounds_error=False,fill_value=0.)
+rholow = interp1d(lowpdat,lowrhodat,kind='linear',bounds_error=False,fill_value=0.)
+mutr = mulow(ptr)
+rhotr = rholow(ptr)
+
+# GET CONSTANT SOUND SPEED PART
+	
+rhodat, mudat, pdat = css([ptr, mutr, Dmu, cqm2], num, pmax)
+mu = interp1d(pdat,mudat,kind='linear',bounds_error=False,fill_value=0.)
+
+# MATCH CONSTANT-DENSITY AND LOW-DENSITY PARTS
+
+unipdat = []
+unimudat = []
+unirhodat = []
+
+i = 0
+while lowpdat[i] < ptr:
+
+	unipdat.append(lowpdat[i])
+	unimudat.append(lowmudat[i])
+	unirhodat.append(lowrhodat[i])
+	i = i+1
+	
+unipdat.append(ptr)
+unimudat.append(mutr)
+unirhodat.append(lowrhodat[i])
+
+j = 0	
+while pdat[j] > ptr:
+
+	j = j+1
+
+while j < len(pdat):
+
+	unipdat.append(pdat[j])
+	unimudat.append(mudat[j])
+	unirhodat.append(rhodat[j])
+	j = j+1
 
 outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
-outfile2.write(header+' \n')
-outfile2.write(body+' \n')
+outfile2.write('p_tr, e_tr, Delta_e, cqm2 \n')
+outfile2.write('{0},{1},{2},{3} \n'.format(ptr,mutr,Dmu,cqm2))
 
 for i in range(len(rhodat)):
 
-	p = pdat[i]
+	p = unipdat[i]
 	logp = np.log(p)
-	mu = mudat[i]
-	rho = rhodat[i]
+	mu = unimudat[i]
+	rho = unirhodat[i]
 
 	outfile1.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))

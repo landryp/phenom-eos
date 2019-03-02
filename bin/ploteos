@@ -95,7 +95,7 @@ for eosname in eosnames:
 		plt.xlabel(r'$p$', fontsize = 28)
 		plt.ylabel(label, fontsize = 28)
 
-	if xvar=='mu':
+	elif xvar=='mu':
 
 		plt.loglog(mudat,pdat,lw=2,label=r'$p$',ls=styles[style])
 		plt.loglog(mudat,rhodat,lw=2,label=r'$\rho$',ls=styles[style])
