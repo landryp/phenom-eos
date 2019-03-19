@@ -1,20 +1,35 @@
 # phenom-eos
-Code for reproducing phenomenological models of candidate EoSs, like piecewise polytropes
 
-* Piecewise polytrope (pwp) *
+Code for reproducing phenomenological models of candidate EoSs, like piecewise polytropes.
 
-geteos_pwp
+---
 
-* Spectral EoS (spec) *
+### Scripts
 
-geteos_spec
+###### Piecewise polytrope (pwp)
 
-* Strange quark matter EoS (sqm) *
+* geteos_pwp
 
-geteos_sqm
+###### Spectral EoS (spec)
 
------
+* geteos_spec
 
-Plotting tool
+###### Strange quark matter EoS (sqm)
 
-ploteos eos.csv
+* geteos_sqm
+
+###### Constant sound speed hadron-quark hybrid EoS (css)
+
+* geteos_css
+
+---
+
+### Tools
+
+###### EoS plot
+
+* ploteos eos.csv
+
+###### Affix SLy crust
+
+* addcrust eos.csv
