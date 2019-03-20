@@ -83,7 +83,7 @@ unimudat.append(mutr)
 unirhodat.append(lowrhodat[i])
 
 j = 0	
-while pdat[j] > ptr:
+while pdat[j] < ptr:
 
 	j = j+1
 
