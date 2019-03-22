@@ -51,6 +51,7 @@ def pwpoly(log10p1, Gamma, div=0, stp=1e2, pmax=1e17, pmin=1e1):
 		a[i] = mu(i-1,divp[i-1])/divrho[i-1] - 1. - K[i]*divrho[i-1]**(Gamma[i]-1.)/(Gamma[i]-1.)	
 		divp[i] = K[i]*divrho[i]**Gamma[i]
 
+	print K[0], K[1], K[2], K[3]
 # EXPORT EOS DATA
 
 	def findseg(p):

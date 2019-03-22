@@ -34,7 +34,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 plt.figure(1,figsize=(10.,10.))
-styles = ['-','--',':','-.']
+styles = ['-','--',':','-.','-','--',':','-.']
 style = 0
 
 # GET EACH EOS

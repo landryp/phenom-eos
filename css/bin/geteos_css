@@ -93,12 +93,12 @@ while j < len(pdat):
 	unimudat.append(mudat[j])
 	unirhodat.append(rhodat[j])
 	j = j+1
-
+	
 outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
 outfile2.write('p_tr, e_tr, Delta_e, cqm2 \n')
 outfile2.write('{0},{1},{2},{3} \n'.format(ptr,mutr,Dmu,cqm2))
 
-for i in range(len(rhodat)):
+for i in range(len(unirhodat)):
 
 	p = unipdat[i]
 	logp = np.log(p)
