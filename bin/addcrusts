@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# ADDCRUSTS -- bash script to append crusts to all EoS files in input directory
+# USAGE: addcrusts ./eos/dir/ ./out/dir/
+
+indir=$1
+outdir=$2
+
+for file in ${indir}*.csv
+do
+	addcrust $(basename "$file") -p $indir -t cr -o $outdir
+done

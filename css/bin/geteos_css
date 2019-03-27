@@ -1,6 +1,6 @@
 #!/usr/bin/python
-__doc__ = 'GETEOS_CSS -- save EoS data for specified constant sound-speed EoS, stitched to chosen low-density EoS'
-__usage__ = 'geteos_css eos.csv'
+__doc__ = 'GETEOS_CSS -- save EoS data for specified constant sound speed EoS, stitched to chosen low-density EoS'
+__usage__ = 'geteos_css loweos.csv'
 __author__ = 'philippe.landry@ligo.org'
 __date__ = '02-2019'
 
@@ -9,31 +9,30 @@ from optparse import OptionParser
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from get_css import css
-from geteos import geteos
 
 parser = OptionParser(usage=__usage__, description=__doc__)
-parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
-parser.add_option('-o', '--outpath', default='./css/dat/', help='path to output data, DEFAULT="./css/dat/"', metavar='outpath')
-parser.add_option('-i', '--inpath', default='./css/in/', help='path to input parameters, DEFAULT="./css/in/"', metavar='inpath')
-parser.add_option('-e', '--eospath', default='./css/in/', help='path to low density EoS, DEFAULT="./css/in/"', metavar='eospath')
-parser.add_option('-f', '--paramsfile', default='cssparams.in', help='name of piecewise polytrope parameters input file (.in) OR comma-separated input parameters (e.g. 5e14,0.6,0.9), DEFAULT="cssparams.in"', metavar='paramsfile')
-parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='pmax')
-parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
+parser.add_option('-p', '--params', default='cssparams.in', help='name of css parameters input file OR comma-separated input parameters [p_tr (g/cm^3), Delta_e (e_tr), cqm2 (c^2)], DEFAULT=cssparams.in', metavar='5e14,0.6,0.9')
+parser.add_option('-n', '--numpts', default=100, help='number of EoS data points to return, DEFAULT=100', metavar='100')
+parser.add_option('-m', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='1e17')
+parser.add_option('-d', '--dir', default='./css/in/', help='path to directory housing low-density EoS, DEFAULT=./css/in/', metavar='./css/in/')
+parser.add_option('-i', '--indir', default='./css/in/', help='path to directory housing input parameters file, DEFAULT=./css/in/', metavar='./css/in/')
+parser.add_option('-o', '--outdir', default='./css/dat/', help='path to output directory, DEFAULT=./css/dat/', metavar='./css/dat/')
+parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
 
 opts, args = parser.parse_args()
-outpath = str(opts.outpath)
-inpath = str(opts.inpath)
-eospath = str(opts.eospath)
-paramsfile = str(opts.paramsfile)
-tag = str(opts.tag)
-num = float(opts.num)
-pmax = float(opts.pmax)
 loweos = str(args[0])
+params = str(opts.params).split(',')
+numpts = float(opts.numpts)
+pmax = float(opts.pmax)
+eosdir = str(opts.dir)
+indir = str(opts.indir)
+outdir = str(opts.outdir)
+tag = str(opts.tag)
 
-outfile1 = open(outpath+"eos/"+"css_"+tag+".csv","w")
-outfile2 = open(outpath+"params/"+"params_"+tag+".csv","w")
+outfile1 = open(outdir+"eos/"+"css_"+tag+".csv","w")
+outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
 
-params = paramsfile.split(',')
+# LOAD EOS PARAMETERS
 
 if len(params)>1 : # read parameters if entered manually
 
@@ -41,53 +40,53 @@ if len(params)>1 : # read parameters if entered manually
 	
 else: # otherwise, read parameters from file
 	
-	cssparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+	cssparams = np.genfromtxt(indir+params[0],delimiter=',',names=True)
 	
 	[ptr, Dmu, cqm2] = [cssparams['p_tr'],cssparams['Delta_e'],cssparams['cqm2']]
 
 # CALCULATE TRANSITION ENERGY DENSITY FROM LOW-DENSITY EOS AT TRANSITION PRESSURE
 
-eosloc = eospath+loweos
-eos = geteos(eosloc)
-lowrhodat = eos[:,0] # rest-mass energy density in units of g/cm^3
-lowpdat = eos[:,1] # pressure in units of g/cm^3
-lowmudat = eos[:,2] # total energy density in units of g/cm^3
+eospath = eosdir+loweos
+eosdat = np.genfromtxt(eospath,names=True,delimiter=',') # load low-density EoS data
+lowrhodat = eosdat['baryon_density'] # rest-mass energy density in units of g/cm^3
+lowpdat = eosdat['pressurec2'] # pressure in units of g/cm^3
+lowmudat = eosdat['energy_densityc2'] # total energy density in units of g/cm^3
 
-plowmin = lowpdat[0]
-mulow = interp1d(lowpdat,lowmudat,kind='linear',bounds_error=False,fill_value=0.)
-rholow = interp1d(lowpdat,lowrhodat,kind='linear',bounds_error=False,fill_value=0.)
-mutr = mulow(ptr)
+mulow = interp1d(lowpdat,lowmudat,kind='linear',bounds_error=False,fill_value=0)
+rholow = interp1d(lowpdat,lowrhodat,kind='linear',bounds_error=False,fill_value=0)
+
+mutr = mulow(ptr) # interpolate baryon and energy densities at onset of phase transition
 rhotr = rholow(ptr)
+plowmin = lowpdat[0] # lowest pressure in low-density EoS
 
-# GET CONSTANT SOUND SPEED PART
-	
-rhodat, mudat, pdat = css([ptr, mutr, Dmu, cqm2], num, pmax)
-mu = interp1d(pdat,mudat,kind='linear',bounds_error=False,fill_value=0.)
+# CONSTRUCT CONSTANT SOUND SPEED PART
 
-# MATCH CONSTANT-DENSITY AND LOW-DENSITY PARTS
+paramszip = [ptr, mutr, Dmu, cqm2]
+rhodat, mudat, pdat = css(paramszip, numpts, pmax)
+mu = interp1d(pdat,mudat,kind='linear',bounds_error=False,fill_value=0)
 
-unipdat = []
-unimudat = []
-unirhodat = []
+# JOIN CONSTANT SOUND SPEED AND LOW-DENSITY PARTS, THEN PRINT EOS DATA
+
+unipdat, unimudat, unirhodat = [], [], []
 
 i = 0
-while lowpdat[i] < ptr:
+while lowpdat[i] < ptr: # save low-density EoS data below phase transition
 
 	unipdat.append(lowpdat[i])
 	unimudat.append(lowmudat[i])
 	unirhodat.append(lowrhodat[i])
 	i = i+1
 	
-unipdat.append(ptr)
+unipdat.append(ptr) # save jump in energy density at phase transition
 unimudat.append(mutr)
-unirhodat.append(lowrhodat[i])
+unirhodat.append(rhotr)
 
 j = 0	
-while pdat[j] < ptr:
+while pdat[j] < ptr: # skip constant sound speed part below phase transition
 
 	j = j+1
 
-while j < len(pdat):
+while j < len(pdat): # then save constant sound speed data above phase transition
 
 	unipdat.append(pdat[j])
 	unimudat.append(mudat[j])
@@ -96,9 +95,9 @@ while j < len(pdat):
 	
 outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
 outfile2.write('p_tr, e_tr, Delta_e, cqm2 \n')
-outfile2.write('{0},{1},{2},{3} \n'.format(ptr,mutr,Dmu,cqm2))
+outfile2.write('{0},{1},{2},{3} \n'.format(ptr,mutr,Dmu,cqm2)) # record params used
 
-for i in range(len(unirhodat)):
+for i in range(len(unirhodat)): # print table of EoS data
 
 	p = unipdat[i]
 	logp = np.log(p)

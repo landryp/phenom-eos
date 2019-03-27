@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# MAKECSS -- bash script to generate constant sound-speed EoS files for list of input parameters given in infile
+# USAGE: makecss inputparams.in
+
+infile=$1
+
+i=0
+while IFS= read -r params
+do
+	geteos_css DDME2.csv -f $params -t $i
+	i=$(($i+1))
+done < <(tail -n +2 $infile)

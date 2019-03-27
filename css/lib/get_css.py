@@ -6,35 +6,34 @@
 #__date__ = '02-2019'
 
 import numpy as np
-from constants import c
+from constants import *
 
 def css(params, stp=1e2, pmax=1e17):
 
-	
 # DEFINE CORE PARAMETERS
 
 	[ptr, mutr, Dmu, cqm2] = params
 	
 	def mu(p): # total energy density in [g/cm^3]
 	
-		return mutr + Dmu*mutr + (p-ptr)/cqm2
+		return mutr + Dmu*mutr + (p-ptr)/cqm2	# taken from Han+Steiner 1810.10967
 		
 	def rho(p): # rest-mass energy density in [g/cm^3]
 	
-		factor1 = -ptr+cqm2*(Dmu+mutr)
-		factor2 = (1.+cqm2)*p - ptr + cqm2*(Dmu+mutr)
+		factor1 = -ptr+cqm2*(Dmu*mutr+mutr)
+		factor2 = (1.+cqm2)*p - ptr + cqm2*(Dmu*mutr+mutr)
 		
 		power1 = cqm2/(1.+cqm2)
 		power2 = 1./(1.+cqm2)
 	
-		return factor1**power1*factor2**power2/cqm2
+		return factor1**power1*factor2**power2/cqm2 # follows from 1st law of thermodynamics
 
 # EXPORT EOS DATA
 
 	rhodat = []
 	mudat = []
 	
-	pdat = np.logspace(np.log10(ptr),np.log10(pmax),stp)
+	pdat = np.logspace(np.log10(ptr),np.log10(pmax),stp) # pressure in g/cm^3
 	
 	for p in pdat:
 	

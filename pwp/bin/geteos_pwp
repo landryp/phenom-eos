@@ -9,32 +9,28 @@ from optparse import OptionParser
 from get_pwp import pwpoly
 
 parser = OptionParser(usage=__usage__, description=__doc__)
-parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
-parser.add_option('-o', '--outpath', default='./pwp/dat/', help='path to output data, DEFAULT="./pwp/dat/"', metavar='outpath')
-parser.add_option('-i', '--inpath', default='./pwp/in/', help='path to input parameters, DEFAULT="./pwp/in/"', metavar='inpath')
-parser.add_option('-f', '--paramsfile', default='pwpparams.in', help='name of piecewise polytrope parameters input file (.in) OR comma-separated input parameters (e.g. 34.,1.,1.5,1.2), DEFAULT="pwpparams.in"', metavar='paramsfile')
-parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='pmax')
-parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
-parser.add_option('-d', '--divrho', default=0, help='manual specification of dividing rest-mass densities [g/cm^3] (e.g. 2.8e14,5.2e14), DEFAULT=0', metavar='divrho')
+parser.add_option('-p', '--params', default='pwpparams.in', help='name of pwp parameters input file OR comma-separated input parameters [log10p1,Gamma1,Gamma2,Gamma3,...], DEFAULT=pwpparams.in', metavar='34.,1.,1.5,1.2')
+parser.add_option('-d', '--divrho', default=False, help='comma-separated dividing rest-mass densities [g/cm^3], DEFAULT="Automatic"', metavar='2.8e14,5.2e14')
+parser.add_option('-n', '--numpts', default=100, help='number of EoS data points to return, DEFAULT=100', metavar='100')
+parser.add_option('-m', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='1e17')
+parser.add_option('-i', '--indir', default='./pwp/in/', help='path to directory housing input parameters file, DEFAULT=./pwp/in/', metavar='./pwp/in/')
+parser.add_option('-o', '--outdir', default='./pwp/dat/', help='path to output directory, DEFAULT=./pwp/dat/', metavar='./pwp/dat/')
+parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
 
 opts, args = parser.parse_args()
-outpath = str(opts.outpath)
-inpath = str(opts.inpath)
-paramsfile = str(opts.paramsfile)
-tag = str(opts.tag)
-num = float(opts.num)
-pmax = float(opts.pmax)
+params = str(opts.params).split(',')
 divrho = opts.divrho
+if not divrho==False: divrho = [float(div) for div in divrho.split(',')]
+numpts = float(opts.numpts)
+pmax = float(opts.pmax)
+indir = str(opts.indir)
+outdir = str(opts.outdir)
+tag = str(opts.tag)
 
-if divrho != 0:
+outfile1 = open(outdir+"eos/"+"pwp_"+tag+".csv","w")
+outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
 
-	divrho = str(divrho).split(',')
-	divrho = [float(div) for div in divrho]
-
-outfile1 = open(outpath+"eos/"+"pwp_"+tag+".csv","w")
-outfile2 = open(outpath+"params/"+"params_"+tag+".csv","w")
-
-params = paramsfile.split(',')
+# LOAD EOS PARAMETERS
 
 if len(params)>1 : # read parameters if entered manually
 
@@ -42,26 +38,30 @@ if len(params)>1 : # read parameters if entered manually
 	Gamma = params[1:]
 	Gamma = [float(gamma) for gamma in Gamma]
 	
-	seg = len(params)-1
-	Gname = ['Gamma'+str(i+1) for i in range(seg)]
+	segs = len(params)-1
+	Gname = ['Gamma'+str(i+1) for i in range(segs)]
 	
 else: # otherwise, read parameters from file
 
-	pwpparams = np.genfromtxt(inpath+paramsfile,delimiter=',',skip_header=1)
-	seg = len(pwpparams)-1
+	pwpparams = np.genfromtxt(indir+params[0],delimiter=',',skip_header=1)
+	segs = len(pwpparams)-1
 	
-	pwpparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+	pwpparams = np.genfromtxt(indir+params[0],delimiter=',',names=True)
 	
 	log10p1 = pwpparams['log10p1']
 	
-	Gamma = np.zeros(seg)
+	Gamma = np.zeros(segs)
 	Gname = []
-	for i in range(seg):
+	for i in range(segs):
 	
 		Gname.append('Gamma'+str(i+1))
 		Gamma[i] = pwpparams[Gname[i]]
-	
-rhodat, mudat, pdat = pwpoly(log10p1, Gamma, divrho, num, pmax)
+
+# CONSTRUCT PIECEWISE POLYTROPE
+
+rhodat, mudat, pdat = pwpoly(log10p1, Gamma, divrho, numpts, pmax)
+
+# PRINT EOS DATA
 
 header = ','.join(Gname)
 header = 'log10p1,'+header
@@ -71,9 +71,9 @@ body = str(log10p1)+','+body
 
 outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
 outfile2.write(header+' \n')
-outfile2.write(body+' \n')
+outfile2.write(body+' \n') # record params used
 
-for i in range(len(rhodat)):
+for i in range(len(rhodat)): # print table of EoS data
 
 	p = pdat[i]
 	logp = np.log(p)

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# MAKESQM -- bash script to generate strange quark matter EoS files for list of input parameters given in infile
+# USAGE: makesqm inputparams.in
+
+infile=$1
+
+i=0
+while IFS= read -r params
+do
+	geteos_sqm -f $params -t $i
+	i=$(($i+1))
+done < <(tail -n +2 $infile)

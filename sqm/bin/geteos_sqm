@@ -9,25 +9,25 @@ from optparse import OptionParser
 from get_sqm import sqm
 
 parser = OptionParser(usage=__usage__, description=__doc__)
-parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
-parser.add_option('-o', '--outpath', default='./sqm/dat/', help='path to output data, DEFAULT="./sqm/dat/"', metavar='outpath')
-parser.add_option('-i', '--inpath', default='./sqm/in/', help='path to input parameters, DEFAULT="./sqm/in/"', metavar='inpath')
-parser.add_option('-f', '--paramsfile', default='sqmparams.in', help='name of SQM parameters input file OR comma-separated input parameters (e.g. 2500.,0.66), DEFAULT="sqmparams.in"', metavar='paramsfile')
-parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='pmax')
-parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
+parser.add_option('-p', '--params', default='sqmparams.in', help='name of sqm parameters input file OR comma-separated input parameters [B (MeV/fm^3), cqm2 (c^2)], DEFAULT=sqmparams.in', metavar='186.,0.66')
+parser.add_option('-n', '--numpts', default=100, help='number of EoS data points to return, DEFAULT=100', metavar='100')
+parser.add_option('-m', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='1e17')
+parser.add_option('-i', '--indir', default='./sqm/in/', help='path to directory housing input parameters file, DEFAULT=./sqm/in/', metavar='./sqm/in/')
+parser.add_option('-o', '--outdir', default='./sqm/dat/', help='path to output directory, DEFAULT=./sqm/dat/', metavar='./sqm/dat/')
+parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
 
 opts, args = parser.parse_args()
-outpath = str(opts.outpath)
-inpath = str(opts.inpath)
-paramsfile = str(opts.paramsfile)
-tag = str(opts.tag)
-num = float(opts.num)
+params = str(opts.params).split(',')
+numpts = float(opts.numpts)
 pmax = float(opts.pmax)
+indir = str(opts.indir)
+outdir = str(opts.outdir)
+tag = str(opts.tag)
 
-outfile1 = open(outpath+"eos/"+"sqm_"+tag+".csv","w")
-outfile2 = open(outpath+"params/"+"params_"+tag+".csv","w")
+outfile1 = open(outdir+"eos/"+"sqm_"+tag+".csv","w")
+outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
 
-params = paramsfile.split(',')
+# LOAD EOS PARAMETERS
 
 if len(params)>1: # read parameters if entered manually
 
@@ -36,17 +36,21 @@ if len(params)>1: # read parameters if entered manually
 
 else: # otherwise, read parameters from file
 
-	sqmparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+	sqmparams = np.genfromtxt(indir+params[0],delimiter=',',names=True)
 
 	B, cqm2 = [sqmparams['B'],sqmparams['cqm2']]
+	
+# CONSTRUCT STRANGE QUARK MATTER EOS
 
-rhodat, mudat, pdat = sqm(B, cqm2, num, pmax)
+rhodat, mudat, pdat = sqm(B, cqm2, numpts, pmax)
+
+# PRINT EOS DATA
 
 outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
 outfile2.write('B,cqm2 \n')
-outfile2.write('{0},{1} \n'.format(B,cqm2))
+outfile2.write('{0},{1} \n'.format(B,cqm2)) # record params used
 
-for i in range(len(rhodat)):
+for i in range(len(rhodat)): # print table of EoS data
 
 	p = pdat[i]
 	logp = np.log(p)

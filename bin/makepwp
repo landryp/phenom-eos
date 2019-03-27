@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# MAKEPWP -- bash script to generate piecewise polytrope EoS files for list of input parameters given in infile
+# USAGE: makepwp inputparams.in
+
+infile=$1
+
+i=0
+while IFS= read -r params
+do
+	geteos_pwp -f $params -t $i
+	i=$(($i+1))
+done < <(tail -n +2 $infile)

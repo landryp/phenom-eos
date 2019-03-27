@@ -19,7 +19,7 @@ def sqm(B, cqm2, stp=1e2, pmax=1e17, eps=1e-4): # bag constant B in MeV, SQM sou
 
 	def mu(p): # total energy density in g/cm^3 as a function of pressure in g/cm^3
 	
-		return 4.*B*fac + p/cqm2
+		return 4.*B*fac + p/cqm2 # from Han+Steiner 1810.10967
 		
 	def rho(p): # rest-mass energy density in g/cm^3, matching rho and mu at surface p=0
 	
@@ -27,14 +27,14 @@ def sqm(B, cqm2, stp=1e2, pmax=1e17, eps=1e-4): # bag constant B in MeV, SQM sou
 		denom = cqm2*B*fac
 		power = 1./(1.+cqm2)
 	
-		return B*fac*(num/denom)**power
+		return B*fac*(num/denom)**power # follows from 1st law of thermodynamics
 
 # EXPORT EOS DATA
 
 	rhodat = []
 	mudat = []
 
-	pdat = np.logspace(np.log10(eps),np.log10(pmax),stp)
+	pdat = np.logspace(np.log10(eps),np.log10(pmax),stp) # pressure in g/cm^3
 	
 	for p in pdat:
 	

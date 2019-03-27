@@ -5,19 +5,19 @@ from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from constants import rhonuc
 
-def crust(eos,pts=1e3):
+def crust(eos,pts=1e2,srange=[3.8e11,2.8e14]):
 
 	# LOAD EOS DATA
 
-	eosdatx = eos[:,0]/rhonuc # rho in units of rhonuc
-	eosdaty = eos[:,1]/rhonuc # p in units of rhonuc
+	eosdatx = eos[0]/rhonuc # rho in units of rhonuc
+	eosdaty = eos[1]/rhonuc # p in units of rhonuc
 	eosintp = interp1d(eosdatx,eosdaty,kind='linear',bounds_error=False,fill_value=0.)
 	
 	def p(rho):
 	
 		return eosintp(rho)
 		
-	eosdaty2 = eos[:,2]/rhonuc # mu in units of rhonuc
+	eosdaty2 = eos[2]/rhonuc # mu in units of rhonuc
 	eosintp2 = interp1d(eosdatx,eosdaty2,kind='linear',bounds_error=False,fill_value=0.)
 	
 	def mu(rho):
@@ -75,7 +75,7 @@ def crust(eos,pts=1e3):
 		
 			return abs(p(rho)-pSLy(rho))
 	
-		res = minimize_scalar(intersect,bounds=(rhodiv[2]/rhonuc,1.),method='bounded')
+		res = minimize_scalar(intersect,bounds=(srange[0]/rhonuc,srange[1]/rhonuc),method='bounded')
 		rhocr = res.x
 		residual = res.fun
 	
@@ -117,14 +117,14 @@ def crust(eos,pts=1e3):
 	
 		return np.piecewise(rho,[rho < rhocr, rho >= rhocr],[lambda rho=rho, i=j: mulist[i] for j in np.arange(0,2)])
 
-	rholist = np.logspace(-12.,np.log10(eosdatx[-1]),pts)
-	mudat = np.zeros(len(rholist))
-	pdat = np.zeros(len(rholist))
+	rholist = np.logspace(-15.,np.log10(rhocr),pts)
+	mudat = np.zeros(pts)
+	pdat = np.zeros(pts)
 	
-	for i in np.arange(len(rholist)):
+	for i in np.arange(pts):
 	
 		rho = rholist[i]
-	
+		
 		mudat[i] = muuni(rho)
 		pdat[i] = puni(rho)
 	

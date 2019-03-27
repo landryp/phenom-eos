@@ -8,9 +8,9 @@
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interp
-from constants import rhonuc
+from constants import *
 
-def spec(g0, g1, g2, g3, pref=0, muref=0, stp=1e2, pmax=1e17, xmin=-4.):
+def spec(g0, g1, g2, g3, pref=False, muref=False, stp=1e2, xmax=6.57, xmin=-4.):
 
 # DEFINE CORE PARAMETERS
 	
@@ -21,7 +21,7 @@ def spec(g0, g1, g2, g3, pref=0, muref=0, stp=1e2, pmax=1e17, xmin=-4.):
 		term2 = g2*x**2
 		term3 = g3*x**3
 	
-		return np.exp(term0+term1+term2+term3)
+		return np.exp(term0+term1+term2+term3) # here and below taken from Lindblom PRD 82 (2010)
 		
 	def z(x): # auxiliary variable (related to rho)
 	
@@ -29,11 +29,11 @@ def spec(g0, g1, g2, g3, pref=0, muref=0, stp=1e2, pmax=1e17, xmin=-4.):
 	
 		return np.exp(-integral)
 
-	if pref == 0:
+	if pref == False: # reference pressure (where spectral EoS starts)
 	
 		pref = 0.5*rhonuc # if no reference pressure given, use half nuclear density
 		
-	if muref == 0: # if no reference density given, calculate by extrapolating spectral fit to low pressures
+	if muref == False: # if no reference density given, calculate by extrapolating spectral fit to low pressures
 			
 		mupref, err = integrate.quad(lambda x1: np.exp(x1)*z(x1)/G(x1), xmin, 0.) 
 		muref = mupref*pref # total energy density at reference pressure in g/cm^3
@@ -55,9 +55,8 @@ def spec(g0, g1, g2, g3, pref=0, muref=0, stp=1e2, pmax=1e17, xmin=-4.):
 	rhodat = []
 	pdat = []
 	mudat = []
-
-	xmax = np.log(pmax/pref)
-	xdat = np.linspace(xmin,xmax,stp)
+	
+	xdat = np.linspace(xmin,xmax,stp) # x = log10(p/pref)
 	
 	for x in xdat:
 	

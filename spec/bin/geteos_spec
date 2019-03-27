@@ -9,29 +9,31 @@ from optparse import OptionParser
 from get_spec import spec
 
 parser = OptionParser(usage=__usage__, description=__doc__)
-parser.add_option('-n', '--num', default=100, help='number of EoS data pts to return, DEFAULT=100', metavar='num')
-parser.add_option('-o', '--outpath', default='./spec/dat/', help='path to output data, DEFAULT="./spec/dat/"', metavar='outpath')
-parser.add_option('-i', '--inpath', default='./spec/in/', help='path to input parameters, DEFAULT="./spec/in/"', metavar='inpath')
-parser.add_option('-f', '--paramsfile', default='specparams.in', help='name of spectral parameters input file OR comma-separated input parameters (e.g. 0.5,1.0,0.2,0.01), DEFAULT="specparams.in"', metavar='paramsfile')
-parser.add_option('-p', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='pmax')
-parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
-parser.add_option('-r', '--pref', default=0, help='reference pressure [g/cm^3] for spectral fit, DEFAULT=None', metavar='pref')
-parser.add_option('-m', '--muref', default=0, help='reference energy density [g/cm^3] for spectral fit, DEFAULT=None', metavar='muref')
+parser.add_option('-p', '--params', default='specparams.in', help='name of spec parameters input file OR comma-separated input parameters [gamma1,gamma2,gamma3,gamma4[,pref,muref[,xmax]]], DEFAULT=specparams.in', metavar='0.5,1.0,0.2,0.01')
+parser.add_option('-m', '--xmax', default=6.57, help='maximum pressure to return in x=log10(p [g/cm^3]/pref) format, DEFAULT=6.57', metavar='6.57')
+parser.add_option('-P', '--pref', default=False, help='reference pressure [g/cm^3] for spectral fit, DEFAULT="None"', metavar='pref')
+parser.add_option('-M', '--muref', default=False, help='reference energy density [g/cm^3] for spectral fit, DEFAULT="None"', metavar='muref')
+parser.add_option('-n', '--numpts', default=100, help='number of EoS data points to return, DEFAULT=100', metavar='100')
+parser.add_option('-i', '--indir', default='./spec/in/', help='path to directory housing input parameters file, DEFAULT=./spec/in/', metavar='./spec/in/')
+parser.add_option('-o', '--outdir', default='./spec/dat/', help='path to output directory, DEFAULT=./spec/dat/', metavar='./spec/dat/')
+parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
 
 opts, args = parser.parse_args()
-outpath = str(opts.outpath)
-inpath = str(opts.inpath)
-paramsfile = str(opts.paramsfile)
+params = str(opts.params).split(',')
+xmax = float(opts.xmax)
+pref = opts.pref
+if not pref==False: pref = float(pref)
+muref = opts.muref
+if not muref==False: muref = float(muref)
+numpts = float(opts.numpts)
+indir = str(opts.indir)
+outdir = str(opts.outdir)
 tag = str(opts.tag)
-num = float(opts.num)
-pmax = float(opts.pmax)
-pref = float(opts.pref)
-muref = float(opts.muref)
 
-outfile1 = open(outpath+"eos/"+"spec_"+tag+".csv","w")
-outfile2 = open(outpath+"params/"+"params_"+tag+".csv","w")
+outfile1 = open(outdir+"eos/"+"spec_"+tag+".csv","w")
+outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
 
-params = paramsfile.split(',')
+# LOAD EOS PARAMETERS
 
 if len(params)>1: # read parameters if entered manually
 
@@ -39,22 +41,35 @@ if len(params)>1: # read parameters if entered manually
 	g1 = float(params[1])
 	g2 = float(params[2])
 	g3 = float(params[3])
+	
+	if len(params)>4:
+	
+		pref = float(params[4])
+		muref = float(params[5])
+		
+		if len(params)>6:
+		
+			xmax = float(params[6])
 
 else: # otherwise, read parameters from file
 
-	specparams = np.genfromtxt(inpath+paramsfile,delimiter=',',names=True)
+	specparams = np.genfromtxt(indir+params[0],delimiter=',',names=True)
 
 	g0, g1, g2, g3 = [specparams['gamma0'],specparams['gamma1'],specparams['gamma2'],specparams['gamma3']]
 	
 	pref, muref = [specparams['pref'],specparams['muref']]
-	
-rhodat, mudat, pdat = spec(g0, g1, g2, g3, pref, muref, num, pmax)
+
+# CONSTRUCT SPECTRAL EOS
+
+rhodat, mudat, pdat = spec(g0, g1, g2, g3, pref, muref, numpts, xmax)
+
+# PRINT EOS DATA
 
 outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
-outfile2.write('gamma0,gamma1,gamma2,gamma3 \n')
-outfile2.write('{0},{1},{2},{3} \n'.format(g0,g1,g2,g3))
+outfile2.write('gamma0,gamma1,gamma2,gamma3,pref,muref,xmax \n')
+outfile2.write('{0},{1},{2},{3} \n'.format(g0,g1,g2,g3,pref,muref,xmax)) # record params used
 
-for i in range(len(rhodat)):
+for i in range(len(rhodat)): # print table of EoS data
 
 	p = pdat[i]
 	logp = np.log(p)

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-__doc__ = 'ADDCRUST -- append low-density SLY crust to existing EoS data'
+__doc__ = 'ADDCRUST -- append low-density SLy crust to existing EoS n [pressurec2,energy_densityc2,baryon_density] [g/cm^3] csv format'
 __usage__ = 'addcrust EoS.csv'
 __author__ = 'philippe.landry@ligo.org'
 __date__ = '03-2019'
@@ -8,43 +8,49 @@ import numpy as np
 from optparse import OptionParser
 from geteos import geteos
 from crust import crust
-from constants import rhonuc, c
+from constants import *
 
 parser = OptionParser(usage=__usage__, description=__doc__)
-parser.add_option('-p', '--eospath', default='./dat/eos/', help='path to EoS data, DEFAULT="./dat/eos/"', metavar='eospath')
-parser.add_option('-o', '--outpath', default='./plt/', help='path to output data, DEFAULT="./plt/"', metavar='outpath')
-parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='tag')
+parser.add_option('-s', '--searchrng', default='3.8e11,2.8e14', help='baryon density [g/cm^3] search range for crust-core interface, DEFAULT=3.8e11,2.8e14', metavar='3.8e11,2.8e14')
+parser.add_option('-n', '--numpts', default=1e2, help='number of crust data points to append, DEFAULT=100', metavar='100')
+parser.add_option('-d', '--dir', default='./dat/eos/', help='path to directory housing EoS data, DEFAULT=./dat/eos/', metavar='./dat/eos/')
+parser.add_option('-o', '--outdir', default='./plt/', help='path to output directory, DEFAULT=./plt/', metavar='./plt/')
+parser.add_option('-t', '--tag', default='cr', help='tag for output data file, DEFAULT=cr', metavar='cr')
 
 opts, args = parser.parse_args()
-eospath = str(opts.eospath)
-outpath = str(opts.outpath)
-tag = str(opts.tag)
 eosname = str(args[0])
+shortname = eosname.split('.')[0]
+srange = str(opts.searchrng)
+srange = [float(val) for val in srange.split(',')]
+numpts = int(opts.numpts)
+indir = str(opts.dir)
+outdir = str(opts.outdir)
+tag = str(opts.tag)
 
-name = eosname.split('.')[0]
-outfile = open(outpath+name+tag+".csv","w")
+outfile = open(outdir+shortname+tag+".csv","w")
 
-# GET EOS
+# LOAD EOS DATA
 
-eosloc = eospath+eosname
-eos = geteos(eosloc)
-rhodat = eos[:,0] # rest-mass energy density in units of g/cm^3
-pdat = eos[:,1] # pressure in units of g/cm^3
-mudat = eos[:,2] # total energy density in units of g/cm^3
+eospath = indir+eosname
+eosdat = np.genfromtxt(eospath,names=True,delimiter=',')
+rhocoredat = eosdat['baryon_density'] # rest-mass energy density in units of g/cm^3
+pcoredat = eosdat['pressurec2'] # pressure in units of g/cm^3
+mucoredat = eosdat['energy_densityc2'] # total energy density in units of g/cm^3
+eoszip = [rhocoredat,pcoredat,mucoredat]
 
-rhodat = rhodat/rhonuc # rho in units of rhonuc
-pdat = pdat/rhonuc # p in units of rhonuc
-mudat = mudat/rhonuc # mu in units of rhonuc
+# AFFIX LOW-DENSITY CRUST
+
+[rhodat,mudat,pdat] = crust(eoszip,numpts,srange) # returns crust EoS data up to crust-core interface in units of rhonuc
 	
-[rhodat,mudat,pdat] = crust(eos,pts=5e2) # affix low-density crust
-	
-rhodat = rhodat*rhonuc
+rhodat = rhodat*rhonuc # convert back to g/cm^3
 pdat = pdat*rhonuc
 mudat = mudat*rhonuc
 
+# SAVE NEW CRUST + CORE EOS DATA
+
 outfile.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
 
-for i in range(len(rhodat)):
+for i in range(len(rhodat)): # first print crust data points up to interface density
 
 	p = pdat[i]
 	logp = np.log(p)
@@ -52,3 +58,21 @@ for i in range(len(rhodat)):
 	rho = rhodat[i]
 
 	outfile.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))
+
+j = 0	
+while rhocoredat[j] <= rhodat[-1]: # then skip core data below interface density
+
+	j = j+1
+
+while j < len(rhocoredat): # then print original core data above interface density
+
+	p = pcoredat[j]
+	logp = np.log(p)
+	mu = mucoredat[j]
+	rho = rhocoredat[j]
+	
+	outfile.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))
+	
+	j = j+1
+	
+
