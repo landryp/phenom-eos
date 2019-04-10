@@ -16,6 +16,8 @@ parser.add_option('-m', '--pmax', default=1e17, help='maximum pressure to return
 parser.add_option('-i', '--indir', default='./pwp/in/', help='path to directory housing input parameters file, DEFAULT=./pwp/in/', metavar='./pwp/in/')
 parser.add_option('-o', '--outdir', default='./pwp/dat/', help='path to output directory, DEFAULT=./pwp/dat/', metavar='./pwp/dat/')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
+parser.add_option('-P', '--pressures', default=False, help='comma-separated list of pressures [g/cm^3] at which to return the EoS data, DEFAULT=Auto', metavar=False)
+parser.add_option('-M', '--pmin', default=1., help='lowest pressure [g/cm^3] at which to return EoS data, DEFAULT=1', metavar=1.)
 
 opts, args = parser.parse_args()
 params = str(opts.params).split(',')
@@ -26,6 +28,9 @@ pmax = float(opts.pmax)
 indir = str(opts.indir)
 outdir = str(opts.outdir)
 tag = str(opts.tag)
+plist = str(opts.pressures).split(',')
+if len(plist) > 1: plist = [float(ppt) for ppt in plist]
+pmin = float(opts.pmin)
 
 outfile1 = open(outdir+"eos/"+"pwp_"+tag+".csv","w")
 outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
@@ -59,7 +64,7 @@ else: # otherwise, read parameters from file
 
 # CONSTRUCT PIECEWISE POLYTROPE
 
-rhodat, mudat, pdat = pwpoly(log10p1, Gamma, divrho, numpts, pmax)
+rhodat, mudat, pdat = pwpoly(log10p1, Gamma, divrho, numpts, pmax, pmin, plist)
 
 # PRINT EOS DATA
 

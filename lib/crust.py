@@ -119,7 +119,7 @@ def crust(eos,pts=1e2,srange=[3.8e11,2.8e14],rhoi=0.28,rholist=False):
 		rholist = [rhopt/rhonuc for rhopt in rholist if rhopt/rhonuc <= rhocr]
 		pts = len(rholist)
 	else:
-		rholist = np.logspace(log10(rhoi/rhonuc),np.log10(rhocr),pts)
+		rholist = np.logspace(np.log10(rhoi/rhonuc),np.log10(rhocr),pts)
 
 	mudat = np.zeros(pts)
 	pdat = np.zeros(pts)

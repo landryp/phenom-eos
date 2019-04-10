@@ -17,6 +17,8 @@ parser.add_option('-n', '--numpts', default=100, help='number of EoS data points
 parser.add_option('-i', '--indir', default='./spec/in/', help='path to directory housing input parameters file, DEFAULT=./spec/in/', metavar='./spec/in/')
 parser.add_option('-o', '--outdir', default='./spec/dat/', help='path to output directory, DEFAULT=./spec/dat/', metavar='./spec/dat/')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
+parser.add_option('-x', '--xvals', default=False, help='comma-separated list of x values at which to return the EoS data, DEFAULT=Auto', metavar=False)
+parser.add_option('-X', '--xmin', default=-4., help='lowest x value at which to return EoS data, DEFAULT=-4', metavar=-4.)
 
 opts, args = parser.parse_args()
 params = str(opts.params).split(',')
@@ -29,6 +31,9 @@ numpts = float(opts.numpts)
 indir = str(opts.indir)
 outdir = str(opts.outdir)
 tag = str(opts.tag)
+xlist = str(opts.xvals).split(',')
+if len(xlist) > 1: xlist = [float(xpt) for xpt in xlist]
+xmin = float(opts.xmin)
 
 outfile1 = open(outdir+"eos/"+"spec_"+tag+".csv","w")
 outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
@@ -61,7 +66,7 @@ else: # otherwise, read parameters from file
 
 # CONSTRUCT SPECTRAL EOS
 
-rhodat, mudat, pdat = spec(g0, g1, g2, g3, pref, muref, numpts, xmax)
+rhodat, mudat, pdat = spec(g0, g1, g2, g3, pref, muref, numpts, xmax, xmin, xlist)
 
 # PRINT EOS DATA
 

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-__doc__ = 'ADDCRUST -- append low-density SLy crust to existing EoS n [pressurec2,energy_densityc2,baryon_density] [g/cm^3] csv format'
+__doc__ = 'ADDCRUST -- append low-density SLy crust to existing EoS in [pressurec2,energy_densityc2,baryon_density] [g/cm^3] csv format'
 __usage__ = 'addcrust EoS.csv'
 __author__ = 'philippe.landry@ligo.org'
 __date__ = '03-2019'
@@ -15,6 +15,8 @@ parser.add_option('-n', '--numpts', default=1e2, help='number of crust data poin
 parser.add_option('-d', '--dir', default='./dat/eos/', help='path to directory housing EoS data, DEFAULT=./dat/eos/', metavar='./dat/eos/')
 parser.add_option('-o', '--outdir', default='./plt/', help='path to output directory, DEFAULT=./plt/', metavar='./plt/')
 parser.add_option('-t', '--tag', default='cr', help='tag for output data file, DEFAULT=cr', metavar='cr')
+parser.add_option('-r', '--rhos', default=False, help='comma-separated list of rest-mass densities [g/cm^3] at which to return the crust data, DEFAULT=Auto', metavar=False)
+parser.add_option('-R', '--rhoi', default=0.28, help='lowest rest-mass density [g/cm^3] at which to return crust data, DEFAULT=0.28', metavar=0.28)
 
 opts, args = parser.parse_args()
 eosname = str(args[0])
@@ -25,6 +27,9 @@ numpts = int(float(opts.numpts))
 indir = str(opts.dir)
 outdir = str(opts.outdir)
 tag = str(opts.tag)
+rholist = str(opts.rhos).split(',')
+if len(rholist) > 1: rholist = [float(rhopt) for rhopt in rholist]
+rhoi = float(opts.rhoi)
 
 outfile = open(outdir+shortname+tag+".csv","w")
 
@@ -39,7 +44,7 @@ eoszip = [rhocoredat,pcoredat,mucoredat]
 
 # AFFIX LOW-DENSITY CRUST
 
-[rhodat,mudat,pdat] = crust(eoszip,numpts,srange) # returns crust EoS data up to crust-core interface in units of rhonuc
+[rhodat,mudat,pdat] = crust(eoszip,numpts,srange,rhoi,rholist) # returns crust EoS data up to crust-core interface in units of rhonuc
 	
 rhodat = rhodat*rhonuc # convert back to g/cm^3
 pdat = pdat*rhonuc

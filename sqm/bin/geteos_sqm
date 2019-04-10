@@ -15,6 +15,7 @@ parser.add_option('-m', '--pmax', default=1e17, help='maximum pressure to return
 parser.add_option('-i', '--indir', default='./sqm/in/', help='path to directory housing input parameters file, DEFAULT=./sqm/in/', metavar='./sqm/in/')
 parser.add_option('-o', '--outdir', default='./sqm/dat/', help='path to output directory, DEFAULT=./sqm/dat/', metavar='./sqm/dat/')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
+parser.add_option('-P', '--pressures', default=False, help='comma-separated list of pressures [g/cm^3] at which to return the EoS data, DEFAULT=Auto', metavar=False)
 
 opts, args = parser.parse_args()
 params = str(opts.params).split(',')
@@ -23,6 +24,8 @@ pmax = float(opts.pmax)
 indir = str(opts.indir)
 outdir = str(opts.outdir)
 tag = str(opts.tag)
+plist = str(opts.pressures).split(',')
+if len(plist) > 1: plist = [float(ppt) for ppt in plist]
 
 outfile1 = open(outdir+"eos/"+"sqm_"+tag+".csv","w")
 outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
@@ -42,7 +45,7 @@ else: # otherwise, read parameters from file
 	
 # CONSTRUCT STRANGE QUARK MATTER EOS
 
-rhodat, mudat, pdat = sqm(B, cqm2, numpts, pmax)
+rhodat, mudat, pdat = sqm(B, cqm2, numpts, pmax, 1e-4, plist)
 
 # PRINT EOS DATA
 

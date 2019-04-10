@@ -18,6 +18,7 @@ parser.add_option('-d', '--dir', default='./css/in/', help='path to directory ho
 parser.add_option('-i', '--indir', default='./css/in/', help='path to directory housing input parameters file, DEFAULT=./css/in/', metavar='./css/in/')
 parser.add_option('-o', '--outdir', default='./css/dat/', help='path to output directory, DEFAULT=./css/dat/', metavar='./css/dat/')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
+parser.add_option('-P', '--pressures', default=False, help='comma-separated list of pressures [g/cm^3] at which to return the EoS data, DEFAULT=Auto', metavar=False)
 
 opts, args = parser.parse_args()
 loweos = str(args[0])
@@ -28,6 +29,8 @@ eosdir = str(opts.dir)
 indir = str(opts.indir)
 outdir = str(opts.outdir)
 tag = str(opts.tag)
+plist = str(opts.pressures).split(',')
+if len(plist) > 1: plist = [float(ppt) for ppt in plist]
 
 outfile1 = open(outdir+"eos/"+"css_"+tag+".csv","w")
 outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
@@ -62,7 +65,7 @@ plowmin = lowpdat[0] # lowest pressure in low-density EoS
 # CONSTRUCT CONSTANT SOUND SPEED PART
 
 paramszip = [ptr, mutr, Dmu, cqm2]
-rhodat, mudat, pdat = css(paramszip, numpts, pmax)
+rhodat, mudat, pdat = css(paramszip, numpts, pmax, plist)
 mu = interp1d(pdat,mudat,kind='linear',bounds_error=False,fill_value=0)
 
 # JOIN CONSTANT SOUND SPEED AND LOW-DENSITY PARTS, THEN PRINT EOS DATA
