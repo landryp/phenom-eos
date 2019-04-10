@@ -10,7 +10,7 @@ import scipy.integrate as integrate
 import scipy.interpolate as interp
 from constants import *
 
-def spec(g0, g1, g2, g3, pref=False, muref=False, stp=1e2, xmax=6.57, xmin=-4.):
+def spec(g0, g1, g2, g3, pref=False, muref=False, stp=1e2, xmax=6.57, xmin=-4., xlist=False):
 
 # DEFINE CORE PARAMETERS
 	
@@ -56,7 +56,13 @@ def spec(g0, g1, g2, g3, pref=False, muref=False, stp=1e2, xmax=6.57, xmin=-4.):
 	pdat = []
 	mudat = []
 	
-	xdat = np.linspace(xmin,xmax,stp) # x = log10(p/pref)
+	if len(xlist) > 1:
+	
+		xdat = xlist
+	
+	else:
+	
+		xdat = np.linspace(xmin,xmax,stp) # x = log10(p/pref)
 	
 	for x in xdat:
 	

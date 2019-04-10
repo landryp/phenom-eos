@@ -9,7 +9,7 @@ import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interp
 
-def sqm(B, cqm2, stp=1e2, pmax=1e17, eps=1e-4): # bag constant B in MeV, SQM sound speed squared in c^2
+def sqm(B, cqm2, stp=1e2, pmax=1e17, eps=1e-4, plist=False): # bag constant B in MeV, SQM sound speed squared in c^2
 
 	MeVc2tog = 1.78266191e-27
 	fmtocm = 1e-13
@@ -34,7 +34,13 @@ def sqm(B, cqm2, stp=1e2, pmax=1e17, eps=1e-4): # bag constant B in MeV, SQM sou
 	rhodat = []
 	mudat = []
 
-	pdat = np.logspace(np.log10(eps),np.log10(pmax),stp) # pressure in g/cm^3
+	if len(plist) > 1:
+	
+		pdat = plist
+	
+	else:
+	
+		pdat = np.logspace(np.log10(eps),np.log10(pmax),stp) # pressure in g/cm^3
 	
 	for p in pdat:
 	

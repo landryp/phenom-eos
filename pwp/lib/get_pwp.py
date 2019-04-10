@@ -8,7 +8,7 @@
 import numpy as np
 from constants import *
 
-def pwpoly(log10p1, Gamma, div=0, stp=1e2, pmax=1e17, pmin=1e1):
+def pwpoly(log10p1, Gamma, div=0, stp=1e2, pmax=1e17, pmin=1e0, plist=False):
 
 # DEFINE SEGMENTS AND DIVIDING DENSITIES
 
@@ -67,7 +67,13 @@ def pwpoly(log10p1, Gamma, div=0, stp=1e2, pmax=1e17, pmin=1e1):
 	rhodat = []
 	mudat = []
 	
-	pdat = np.logspace(np.log10(pmin),np.log10(pmax),stp) # pressure in g/cm^3
+	if len(plist) > 1:
+	
+		pdat = plist
+	
+	else:
+	
+		pdat = np.logspace(np.log10(pmin),np.log10(pmax),stp) # pressure in g/cm^3
 	
 	for p in pdat:
 	

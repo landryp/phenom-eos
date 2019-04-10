@@ -8,7 +8,7 @@
 import numpy as np
 from constants import *
 
-def css(params, stp=1e2, pmax=1e17):
+def css(params, stp=1e2, pmax=1e17, plist=False):
 
 # DEFINE CORE PARAMETERS
 
@@ -33,7 +33,13 @@ def css(params, stp=1e2, pmax=1e17):
 	rhodat = []
 	mudat = []
 	
-	pdat = np.logspace(np.log10(ptr),np.log10(pmax),stp) # pressure in g/cm^3
+	if len(plist) > 1:
+	
+		pdat = plist
+	
+	else:
+	
+		pdat = np.logspace(np.log10(ptr),np.log10(pmax),stp) # pressure in g/cm^3
 	
 	for p in pdat:
 	

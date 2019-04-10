@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from constants import rhonuc
 
-def crust(eos,pts=1e2,srange=[3.8e11,2.8e14]):
+def crust(eos,pts=1e2,srange=[3.8e11,2.8e14],rhoi=0.28,rholist=False):
 
 	# LOAD EOS DATA
 
@@ -111,13 +111,16 @@ def crust(eos,pts=1e2,srange=[3.8e11,2.8e14]):
 	
 			rho = np.asarray([rho])
 	
-#		Deltamu = muSLy(rhocr)-mu(rhocr) # force thermodynamic consistency at core-crust interface
-	
-		mulist = [muSLy(rho),mu(rho)] #+ Deltamu]
+		mulist = [muSLy(rho),mu(rho)]
 	
 		return np.piecewise(rho,[rho < rhocr, rho >= rhocr],[lambda rho=rho, i=j: mulist[i] for j in np.arange(0,2)])
 
-	rholist = np.logspace(-15.,np.log10(rhocr),pts)
+	if len(rholist) > 1:
+		rholist = [rhopt/rhonuc for rhopt in rholist if rhopt/rhonuc <= rhocr]
+		pts = len(rholist)
+	else:
+		rholist = np.logspace(log10(rhoi/rhonuc),np.log10(rhocr),pts)
+
 	mudat = np.zeros(pts)
 	pdat = np.zeros(pts)
 	

@@ -34,8 +34,8 @@ fvarlabels = {'rho': r'$\rho \, [\mathrm{g/cm}^3]$','p': r'$p \, [\mathrm{g/cm}^
 unitlabels = {'cgs': r'$[\mathrm{g/cm}^3]$','rhonuc': r'$[\rho_{\mathrm{nuc}}]$'}
 plt.xlabel(fvarlabels[xvar])
 plt.ylabel(unitlabels[units])
-if len(lims) > 1: plt.xlim(lims[0],lims[1])
-if len(lims) > 2: plt.ylim(lims[2],lims[3])
+if len(lims) > 1: plt.xlim(float(lims[0]),float(lims[1]))
+if len(lims) > 2: plt.ylim(float(lims[2]),float(lims[3]))
 
 # LOAD EOS DATA FOR EACH MODEL AND CONVERT TO SPECIFIED UNITS
 
@@ -70,7 +70,7 @@ for eosname in eosnames:
 # PLOT EOS DATA VS SPECIFIED FLUID VARIABLE
 
 	plt.title('EoS data '+fvars[0]+' (o), '+fvars[1]+' (+), '+fvars[2]+' (Y)')
-
+	
 	plt.loglog(dat[xvar],dat[fvars[0]],lw=0,color=AUTO_COLORS[i],label=shortname,ls='-',marker='.')
 	plt.loglog(dat[xvar],dat[fvars[1]],lw=0,color=AUTO_COLORS[i],ls='--',marker='+')
 	plt.loglog(dat[xvar],dat[fvars[2]],lw=0,color=AUTO_COLORS[i],ls='-',marker='1')

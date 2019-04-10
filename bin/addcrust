@@ -6,7 +6,6 @@ __date__ = '03-2019'
 
 import numpy as np
 from optparse import OptionParser
-from geteos import geteos
 from crust import crust
 from constants import *
 
@@ -22,7 +21,7 @@ eosname = str(args[0])
 shortname = eosname.split('.')[0]
 srange = str(opts.searchrng)
 srange = [float(val) for val in srange.split(',')]
-numpts = int(opts.numpts)
+numpts = int(float(opts.numpts))
 indir = str(opts.dir)
 outdir = str(opts.outdir)
 tag = str(opts.tag)
