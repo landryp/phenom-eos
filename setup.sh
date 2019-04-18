@@ -1,2 +1,2 @@
-export PATH=$PWD/bin:$PWD/hybrid_css/bin:$PWD/pwp/bin:$PWD/spec/bin:$PWD/sqm/bin:$PWD/css/bin:$PATH
-export PYTHONPATH=$PWD/lib:$PWD/hybrid_css/lib:$PWD/pwp/lib:$PWD/spec/lib:$PWD/sqm/lib:$PWD/css/lib:$PYTHONPATH
+export PATH=$PWD/opt/bin:$PWD/opt/hybrid_css/bin:$PWD/opt/pwp/bin:$PWD/opt/spec/bin:$PWD/opt/sqm/bin:$PWD/opt/css/bin:$PATH
+export PYTHONPATH=$PWD/opt/lib/python2.7/site-packages:$PYTHONPATH

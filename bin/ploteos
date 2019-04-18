@@ -6,9 +6,8 @@ __date__ = '09-2018'
 
 import numpy as np
 from optparse import OptionParser
-from crust import crust
-from constants import *
-from pltsetup import *
+from phenomeos.constants import *
+from phenomeos.pltsetup import *
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-x', '--xvar', default='rho', help='which fluid variable (rho, mu or p) to plot on x-axis, DEFAULT=rho', metavar='rho')

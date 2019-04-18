@@ -6,8 +6,8 @@ __date__ = '03-2019'
 
 import numpy as np
 from optparse import OptionParser
-from crust import crust
-from constants import *
+from phenomeos.crust import crust
+from phenomeos.constants import *
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-s', '--searchrng', default='3.8e11,2.8e14', help='baryon density [g/cm^3] search range for crust-core interface, DEFAULT=3.8e11,2.8e14', metavar='3.8e11,2.8e14')
@@ -15,7 +15,7 @@ parser.add_option('-n', '--numpts', default=1e2, help='number of crust data poin
 parser.add_option('-d', '--dir', default='./dat/eos/', help='path to directory housing EoS data, DEFAULT=./dat/eos/', metavar='./dat/eos/')
 parser.add_option('-o', '--outdir', default='./plt/', help='path to output directory, DEFAULT=./plt/', metavar='./plt/')
 parser.add_option('-t', '--tag', default='cr', help='tag for output data file, DEFAULT=cr', metavar='cr')
-parser.add_option('-r', '--rhos', default=False, help='comma-separated list of rest-mass densities [g/cm^3] at which to return the crust data, DEFAULT=Auto', metavar=False)
+parser.add_option('-r', '--rhos', default=0, help='comma-separated list of rest-mass densities [g/cm^3] at which to return the crust data, DEFAULT=Auto', metavar=0)
 parser.add_option('-R', '--rhoi', default=0.28, help='lowest rest-mass density [g/cm^3] at which to return crust data, DEFAULT=0.28', metavar=0.28)
 
 opts, args = parser.parse_args()

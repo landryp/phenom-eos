@@ -3,9 +3,9 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
-from constants import rhonuc
+from .constants import rhonuc
 
-def crust(eos,pts=1e2,srange=[3.8e11,2.8e14],rhoi=0.28,rholist=False):
+def crust(eos,pts=1e2,srange=[3.8e11,2.8e14],rhoi=0.28,rholist='0'):
 
 	# LOAD EOS DATA
 
@@ -34,6 +34,10 @@ def crust(eos,pts=1e2,srange=[3.8e11,2.8e14],rhoi=0.28,rholist=False):
 	a[2] = (rhodiv[1]+K[1]*rhodiv[1]**Gamma[1]/(Gamma[1]-1.)+a[1]*rhodiv[1])/rhodiv[1]-1.-K[1]*rhodiv[1]**(Gamma[1]-1.)/(Gamma[1]-1)
 	a[3] = (rhodiv[2]+K[2]*rhodiv[2]**Gamma[2]/(Gamma[2]-1.)+a[2]*rhodiv[2])/rhodiv[2]-1.-K[2]*rhodiv[2]**(Gamma[2]-1.)/(Gamma[2]-1)
 	a[4] = (rhodiv[3]+K[3]*rhodiv[3]**Gamma[3]/(Gamma[3]-1.)+a[3]*rhodiv[3])/rhodiv[3]-1.-K[3]*rhodiv[3]**(Gamma[3]-1.)/(Gamma[3]-1)
+	
+	for i in range(2,5): # K values in Read+ table are rounded, so crust EoS slightly discontinuous unless corrected
+	
+		K[i] = K[i-1]*rhodiv[i-1]**Gamma[i-1]/(rhodiv[i-1]**Gamma[i])
 
 	def pSLy(rho):
 	
