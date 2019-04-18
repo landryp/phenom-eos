@@ -8,7 +8,7 @@ import numpy as np
 from optparse import OptionParser
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
-from get_css import css
+from phenomeos.get_css import css
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-p', '--params', default='cssparams.in', help='name of css parameters input file OR comma-separated input parameters [p_tr (g/cm^3), Delta_e (e_tr), cqm2 (c^2)], DEFAULT=cssparams.in', metavar='5e14,0.6,0.9')

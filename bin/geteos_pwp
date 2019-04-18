@@ -6,7 +6,7 @@ __date__ = '02-2019'
 
 import numpy as np
 from optparse import OptionParser
-from get_pwp import pwpoly
+from phenomeos.get_pwp import pwpoly
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-p', '--params', default='pwpparams.in', help='name of pwp parameters input file OR comma-separated input parameters [log10p1,Gamma1,Gamma2,Gamma3,...], DEFAULT=pwpparams.in', metavar='34.,1.,1.5,1.2')

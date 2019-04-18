@@ -6,7 +6,7 @@ __date__ = '02-2019'
 
 import numpy as np
 from optparse import OptionParser
-from get_spec import spec
+from phenomeos.get_spec import spec
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-p', '--params', default='specparams.in', help='name of spec parameters input file OR comma-separated input parameters [gamma1,gamma2,gamma3,gamma4[,pref,muref[,xmax]]], DEFAULT=specparams.in', metavar='0.5,1.0,0.2,0.01')

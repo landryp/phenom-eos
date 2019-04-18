@@ -6,7 +6,7 @@
 #__date__ = '02-2019'
 
 import numpy as np
-from phenomeos.constants import *
+from .constants import *
 
 def css(params, stp=1e2, pmax=1e17, plist=False):
 

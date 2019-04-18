@@ -6,7 +6,7 @@
 #__date__ = '02-2019'
 
 import numpy as np
-from phenomeos.constants import *
+from .constants import *
 
 def pwpoly(log10p1, Gamma, div=0, stp=1e2, pmax=1e17, pmin=1e0, plist=False):
 

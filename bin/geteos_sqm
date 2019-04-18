@@ -6,7 +6,7 @@ __date__ = '02-2019'
 
 import numpy as np
 from optparse import OptionParser
-from get_sqm import sqm
+from phenomeos.get_sqm import sqm
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-p', '--params', default='sqmparams.in', help='name of sqm parameters input file OR comma-separated input parameters [B (MeV/fm^3), cqm2 (c^2)], DEFAULT=sqmparams.in', metavar='186.,0.66')
