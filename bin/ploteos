@@ -11,6 +11,7 @@ from phenomeos.pltsetup import *
 
 parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-x', '--xvar', default='rho', help='which fluid variable (rho, mu or p) to plot on x-axis, DEFAULT=rho', metavar='rho')
+parser.add_option('-y', '--yvar', default='0', help='which fluid variables (rho, mu, p or cs2) to plot on x-axis, DEFAULT=Auto', metavar='p,mu,cs2')
 parser.add_option('-u', '--units', default='cgs', help='units (cgs or rhonuc) for fluid variables on plot, DEFAULT=cgs', metavar='cgs')
 parser.add_option('-l', '--lims', default='', help='comma-separated x and y ranges for plot in units of -u option, DEFAULT=Automatic', metavar='1e12,1e17,1e12,1e17')
 parser.add_option('-d', '--dir', default='./dat/eos/', help='path to directory housing EoS data, DEFAULT=./dat/eos/', metavar='./dat/eos/')
@@ -18,9 +19,17 @@ parser.add_option('-o', '--outdir', default='./plt/', help='path to output direc
 parser.add_option('-t', '--tag', default='', help='tag to append to output filename, DEFAULT=None', metavar='""')
 parser.add_option('-f', '--pltname', default='eosplot', help='plot output filename (automatically appends .png), DEFAULT=eosplot', metavar='eosplot')
 
+fvars = ['rho','p','mu','cs2']
+
 opts, args = parser.parse_args()
 eosnames = str(args[0]).split(',')
 xvar = str(opts.xvar)
+yvar = str(opts.yvar)
+if yvar == '0':
+	fvars.remove(xvar)
+	yvar = fvars
+else:
+	yvar = yvar.split(',')
 units = str(opts.units)
 lims = str(opts.lims).split(',')
 indir = str(opts.dir)
@@ -28,10 +37,19 @@ outdir = str(opts.outdir)
 tag = str(opts.tag)
 pltname = str(opts.pltname)
 
-plt.figure(1)
-fvarlabels = {'rho': r'$\rho \, [\mathrm{g/cm}^3]$','p': r'$p \, [\mathrm{g/cm}^3]$','mu': r'$\mu \, [\mathrm{g/cm}^3]$','cs2': r'${c_s}^2 \, [\mathrm{m/s}^2]$'}
+fvars = [xvar] + yvar
+rhodat, pdat, mudat, cs2dat = [0,0,0,0]
+datkeys = {'rho': rhodat,'p': pdat,'mu': mudat,'cs2': cs2dat}
+headerkeys = {'rho': 'baryon_density','p': 'pressurec2','mu': 'energy_densityc2'}
 unitlabels = {'cgs': r'$[\mathrm{g/cm}^3]$','rhonuc': r'$[\rho_{\mathrm{nuc}}]$'}
-plt.xlabel(fvarlabels[xvar])
+symbols = ['.','+','1']
+if units == 'rhonuc':
+	labelkeys = {'rho': r'$\rho \, [\rho_{\mathrm{nuc}}]$','p': r'$p \, [\rho_{\mathrm{nuc}}]$','mu': r'$\mu \, [\rho_{\mathrm{nuc}}]$','cs2': r'${c_s}^2 \, [c^2]$'}
+else:
+	labelkeys = {'rho': r'$\rho \, [\mathrm{g/cm}^3]$','p': r'$p \, [\mathrm{g/cm}^3]$','mu': r'$\mu \, [\mathrm{g/cm}^3]$','cs2': r'${c_s}^2 \, [\mathrm{m/s}^2]$'}
+
+plt.figure(1)
+plt.xlabel(labelkeys[xvar])
 plt.ylabel(unitlabels[units])
 if len(lims) > 1: plt.xlim(float(lims[0]),float(lims[1]))
 if len(lims) > 2: plt.ylim(float(lims[2]),float(lims[3]))
@@ -45,34 +63,22 @@ for eosname in eosnames:
 
 	eospath = indir+eosname
 	eosdat = np.genfromtxt(eospath,names=True,delimiter=',')
-	rhodat = eosdat['baryon_density'] # rest-mass energy density in units of g/cm^3
-	pdat = eosdat['pressurec2'] # pressure in units of g/cm^3
-	mudat = eosdat['energy_densityc2'] # total energy density in units of g/cm^3
-	cs2dat = np.gradient(pdat,mudat) # sound speed squared in units of c^2
-	
-	if units == 'rhonuc': # convert to units of rhonuc
-	
-		rhodat = rhodat/rhonuc # rho in units of rhonuc
-		pdat = pdat/rhonuc # p in units of rhonuc
-		mudat = mudat/rhonuc # mu in units of rhonuc
-		
-		fvarlabels = {'rho': r'$\rho \, [\rho_{\mathrm{nuc}}]$','p': r'$p \, [\rho_{\mathrm{nuc}}]$','mu': r'$\mu \, [\rho_{\mathrm{nuc}}]$','cs2': r'${c_s}^2 \, [c^2]$'}
-		
-	else: # or keep in cgs, but put cs2 in units of m/s^2 so it shows up on same scale
-	
-		cs2dat = cs2dat*1e-4*c**2 # sound speed squared in units of m/s^2
-
-	fvars = ['rho','p','mu','cs2']
-	fvars.remove(xvar)
-	dat = {'rho': rhodat,'p': pdat,'mu': mudat,'cs2': cs2dat}
+	for var in fvars: # get rest-mass energy density, pressure and total energy density in units of g/cm^3, plus sound speed squared in units of c
+		if var != 'cs2':
+			datkeys[var] = eosdat[headerkeys[var]]
+			if units == 'rhonuc': datkeys[var] = datkeys[var]/rhonuc # convert to units of rhonuc
+		else:
+			datkeys[var] = np.gradient(np.abs(eosdat['pressurec2']),np.abs(eosdat['energy_densityc2']))
+			if units != 'rhonuc': datkeys[var] = np.asarray(datkeys[var])*1e-4*c**2 # sound speed squared in units of m/s^2
 
 # PLOT EOS DATA VS SPECIFIED FLUID VARIABLE
-
-	plt.title('EoS data '+fvars[0]+' (o), '+fvars[1]+' (+), '+fvars[2]+' (Y)')
+	titlestr = [yvar[k]+' ('+symbols[k]+')' for k in range(len(yvar))]
+	plt.title('EoS data '+', '.join(titlestr))
 	
-	plt.loglog(dat[xvar],dat[fvars[0]],lw=0,color=AUTO_COLORS[i],label=shortname,ls='-',marker='.')
-	plt.loglog(dat[xvar],dat[fvars[1]],lw=0,color=AUTO_COLORS[i],ls='--',marker='+')
-	plt.loglog(dat[xvar],dat[fvars[2]],lw=0,color=AUTO_COLORS[i],ls='-',marker='1')
+	for j in range(len(yvar)):
+		var = yvar[j]
+		if j==0: plt.loglog(datkeys[xvar],datkeys[var],lw=0,color=AUTO_COLORS[i],label=shortname,ls='-',marker=symbols[j])
+		else: plt.loglog(datkeys[xvar],datkeys[var],lw=0,color=AUTO_COLORS[i],ls='-',marker=symbols[j])
 	
 	i = i+1
 
