@@ -4,10 +4,11 @@
 # USAGE: makepwp inputparams.in
 
 infile=$1
+outdir=$2
 
 i=0
 while IFS= read -r params
 do
-	geteos_pwp -f $params -t $i
+	geteos_pwp -p $params -t $i -i $outdir/ -o $outdir/
 	i=$(($i+1))
 done < <(tail -n +2 $infile)

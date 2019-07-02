@@ -8,5 +8,5 @@ outdir=$2
 
 for file in ${indir}*.csv
 do
-	addcrust $(basename "$file") -p $indir -t cr -o $outdir
+	addcrust $(basename "$file") -d $indir -t cr -o $outdir
 done
