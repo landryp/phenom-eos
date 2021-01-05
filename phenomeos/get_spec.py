@@ -37,16 +37,15 @@ def rho(x,g0,g1,g2,g3,rhoref): # rest-mass energy density in g/cm^3
 	
 	return rhoref/z(x,g0,g1,g2,g3)
 
-def spec(g0, g1, g2, g3, pref=False, muref=False, stp=1e2, xmax=18., xmin=-1., xlist=False):
+def spec(g0, g1, g2, g3, pref=False, muref=False, stp=1e2, xmax=18., xmin=-4., xlist=False):
 
 	if pref == False: # reference pressure (where spectral EoS starts)
 	
 		pref = 6e11 # if no reference pressure given, use value from Carney+ 2018
 		
-	if muref == False: # if no reference density given, calculate by extrapolating spectral fit to low pressures
-			
-		mupref, err = integrate.quad(lambda x1: np.exp(x1)*z(x1,g0,g1,g2,g3)/G(x1,g0,g1,g2,g3), xmin, 0.) 
-		muref = mupref*pref # total energy density at reference pressure in g/cm^3
+	if muref == False: # if no reference density given, get from sly eos's total energy density at pref
+
+		muref = 1.3e14 # from sly eos
 	
 	rhoref = muref # match rho and mu at reference pressure
 

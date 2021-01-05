@@ -17,7 +17,7 @@ parser.add_option('-M', '--muref', default=False, help='reference energy density
 parser.add_option('-n', '--numpts', default=100, help='number of EoS data points to return, DEFAULT=100', metavar='100')
 parser.add_option('-o', '--outpath', default='spec.csv', help='path to output eos table, DEFAULT="spec.csv"', metavar='/path/to/output.csv')
 parser.add_option('-x', '--xvals', default=False, help='comma-separated list of x values at which to return the EoS data, DEFAULT=Auto', metavar=False)
-parser.add_option('-X', '--xmin', default=-1., help='lowest x value at which to return EoS data, DEFAULT=-1', metavar=-1.)
+parser.add_option('-X', '--xmin', default=-4., help='lowest x value at which to return EoS data, DEFAULT=-4', metavar=-4.)
 
 opts, args = parser.parse_args()
 params = str(opts.params).split(',')
