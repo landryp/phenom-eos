@@ -6,36 +6,33 @@ __date__ = '03-2019'
 
 import numpy as np
 from optparse import OptionParser
+import os
 from phenomeos.crust import crust
 from phenomeos.constants import *
 
 parser = OptionParser(usage=__usage__, description=__doc__)
-parser.add_option('-s', '--searchrng', default='3.8e11,2.8e14', help='baryon density [g/cm^3] search range for crust-core interface, DEFAULT=3.8e11,2.8e14', metavar='3.8e11,2.8e14')
+parser.add_option('-s', '--searchrng', default='3.8e11,3.8e14', help='baryon density [g/cm^3] search range for crust-core interface, DEFAULT=3.8e11,3.8e14', metavar='3.8e11,3.8e14')
 parser.add_option('-n', '--numpts', default=1e2, help='number of crust data points to append, DEFAULT=100', metavar='100')
-parser.add_option('-d', '--dir', default='./dat/eos/', help='path to directory housing EoS data, DEFAULT=./dat/eos/', metavar='./dat/eos/')
-parser.add_option('-o', '--outdir', default='./plt/', help='path to output directory, DEFAULT=./plt/', metavar='./plt/')
-parser.add_option('-t', '--tag', default='cr', help='tag for output data file, DEFAULT=cr', metavar='cr')
+parser.add_option('-o', '--outpath', default='speccr.csv', help='path to output eos table, DEFAULT="speccr.csv"', metavar='/path/to/output.csv')
 parser.add_option('-r', '--rhos', default=0, help='comma-separated list of rest-mass densities [g/cm^3] at which to return the crust data, DEFAULT=Auto', metavar=0)
 parser.add_option('-R', '--rhoi', default=0.28, help='lowest rest-mass density [g/cm^3] at which to return crust data, DEFAULT=0.28', metavar=0.28)
 
 opts, args = parser.parse_args()
-eosname = str(args[0])
-shortname = eosname.split('.')[0]
+eospath = str(args[0])
 srange = str(opts.searchrng)
 srange = [float(val) for val in srange.split(',')]
 numpts = int(float(opts.numpts))
-indir = str(opts.dir)
-outdir = str(opts.outdir)
-tag = str(opts.tag)
+outpath = str(opts.outpath)
 rholist = str(opts.rhos).split(',')
 if len(rholist) > 1: rholist = [float(rhopt) for rhopt in rholist]
 rhoi = float(opts.rhoi)
 
-outfile = open(outdir+shortname+tag+".csv","w")
+if not os.path.exists(os.path.dirname(outpath)): os.makedirs(os.path.dirname(outpath))
+
+outfile = open(outpath,"w")
 
 # LOAD EOS DATA
 
-eospath = indir+eosname
 eosdat = np.genfromtxt(eospath,names=True,delimiter=',')
 rhocoredat = eosdat['baryon_density'] # rest-mass energy density in units of g/cm^3
 pcoredat = eosdat['pressurec2'] # pressure in units of g/cm^3
@@ -52,30 +49,28 @@ mudat = mudat*rhonuc
 
 # SAVE NEW CRUST + CORE EOS DATA
 
-outfile.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
+outfile.write('pressurec2,energy_densityc2,baryon_density\n')
 
 for i in range(len(rhodat)): # first print crust data points up to interface density
 
 	p = pdat[i]
-	logp = np.log(p)
 	mu = mudat[i]
-	rho = rhodat[i]
+	rho = np.asscalar(rhodat[i])
 
-	outfile.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))
+	outfile.write('{0},{1},{2} \n'.format(p,mu,rho))
 
 j = 0	
-while rhocoredat[j] <= rhodat[-1]: # then skip core data below interface density
+while (j < len(rhocoredat)) and (rhocoredat[j] <= rhodat[-1]): # then skip core data below interface density
 
 	j = j+1
 
 while j < len(rhocoredat): # then print original core data above interface density
 
 	p = pcoredat[j]
-	logp = np.log(p)
 	mu = mucoredat[j]
 	rho = rhocoredat[j]
 	
-	outfile.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))
+	outfile.write('{0},{1},{2} \n'.format(p,mu,rho))
 	
 	j = j+1
 	

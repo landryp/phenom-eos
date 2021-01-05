@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from .constants import rhonuc
 
-def crust(eos,pts=1e2,srange=[3.8e11,2.8e14],rhoi=0.28,rholist='0'):
+def crust(eos,pts=1e2,srange=[3.8e11,3.8e14],rhoi=0.28,rholist='0'):
 
 	# LOAD EOS DATA
 

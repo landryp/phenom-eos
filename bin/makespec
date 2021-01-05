@@ -4,10 +4,11 @@
 # USAGE: makespec inputparams.in
 
 infile=$1
+outdir=$2
 
 i=0
 while IFS= read -r params
 do
-	geteos_spec -p $params -t $i
+	geteos_spec -p $params -o "${outdir}/spec_${i}.csv"
 	i=$(($i+1))
 done < <(tail -n +2 $infile)

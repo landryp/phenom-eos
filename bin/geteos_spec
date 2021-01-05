@@ -6,19 +6,18 @@ __date__ = '02-2019'
 
 import numpy as np
 from optparse import OptionParser
+import os
 from phenomeos.get_spec import spec
 
 parser = OptionParser(usage=__usage__, description=__doc__)
-parser.add_option('-p', '--params', default='specparams.in', help='name of spec parameters input file OR comma-separated input parameters [gamma1,gamma2,gamma3,gamma4[,pref,muref[,xmax]]], DEFAULT=specparams.in', metavar='0.5,1.0,0.2,0.01')
-parser.add_option('-m', '--xmax', default=6.57, help='maximum pressure to return in x=log10(p [g/cm^3]/pref) format, DEFAULT=6.57', metavar='6.57')
+parser.add_option('-p', '--params', default='specparams.in', help='path to spec parameters input file OR comma-separated input parameters (e.g. 0.5,1.0,0.2,0.01), DEFAULT="specparams.in"', metavar='g1,g2,g3,g4[,pref,muref[,xmax]]')
+parser.add_option('-m', '--xmax', default=18., help='maximum pressure to return in x=ln(p [g/cm^3]/pref) format, DEFAULT=18.', metavar='18.')
 parser.add_option('-P', '--pref', default=False, help='reference pressure [g/cm^3] for spectral fit, DEFAULT="None"', metavar='pref')
 parser.add_option('-M', '--muref', default=False, help='reference energy density [g/cm^3] for spectral fit, DEFAULT="None"', metavar='muref')
 parser.add_option('-n', '--numpts', default=100, help='number of EoS data points to return, DEFAULT=100', metavar='100')
-parser.add_option('-i', '--indir', default='./spec/in/', help='path to directory housing input parameters file, DEFAULT=./spec/in/', metavar='./spec/in/')
-parser.add_option('-o', '--outdir', default='./spec/dat/', help='path to output directory, DEFAULT=./spec/dat/', metavar='./spec/dat/')
-parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
+parser.add_option('-o', '--outpath', default='spec.csv', help='path to output eos table, DEFAULT="spec.csv"', metavar='/path/to/output.csv')
 parser.add_option('-x', '--xvals', default=False, help='comma-separated list of x values at which to return the EoS data, DEFAULT=Auto', metavar=False)
-parser.add_option('-X', '--xmin', default=-4., help='lowest x value at which to return EoS data, DEFAULT=-4', metavar=-4.)
+parser.add_option('-X', '--xmin', default=-1., help='lowest x value at which to return EoS data, DEFAULT=-1', metavar=-1.)
 
 opts, args = parser.parse_args()
 params = str(opts.params).split(',')
@@ -28,29 +27,22 @@ if not pref==False: pref = float(pref)
 muref = opts.muref
 if not muref==False: muref = float(muref)
 numpts = float(opts.numpts)
-indir = str(opts.indir)
-outdir = str(opts.outdir)
-tag = str(opts.tag)
+outpath = str(opts.outpath)
 xlist = str(opts.xvals).split(',')
 if len(xlist) > 1: xlist = [float(xpt) for xpt in xlist]
 xmin = float(opts.xmin)
 
-outfile1 = open(outdir+"eos/"+"spec_"+tag+".csv","w")
-outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
+if not os.path.exists(os.path.dirname(outpath)): os.makedirs(os.path.dirname(outpath))
 
 # LOAD EOS PARAMETERS
 
 if len(params)>1: # read parameters if entered manually
 
-	g0 = float(params[0])
-	g1 = float(params[1])
-	g2 = float(params[2])
-	g3 = float(params[3])
+	g0, g1, g2, g3 = [float(param) for param in params[:4]]
 	
 	if len(params)>4:
 	
-		pref = float(params[4])
-		muref = float(params[5])
+		pref, muref = [float(param) for param in params[4:6]]
 		
 		if len(params)>6:
 		
@@ -58,7 +50,7 @@ if len(params)>1: # read parameters if entered manually
 
 else: # otherwise, read parameters from file
 
-	specparams = np.genfromtxt(indir+params[0],delimiter=',',names=True)
+	specparams = np.genfromtxt(params[0],delimiter=',',names=True)
 
 	g0, g1, g2, g3 = [specparams['gamma0'],specparams['gamma1'],specparams['gamma2'],specparams['gamma3']]
 	
@@ -70,15 +62,9 @@ rhodat, mudat, pdat = spec(g0, g1, g2, g3, pref, muref, numpts, xmax, xmin, xlis
 
 # PRINT EOS DATA
 
-outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
-outfile2.write('gamma0,gamma1,gamma2,gamma3,pref,muref,xmax \n')
-outfile2.write('{0},{1},{2},{3} \n'.format(g0,g1,g2,g3,pref,muref,xmax)) # record params used
+eosdat = np.column_stack((np.array(pdat),np.array(mudat),np.array(rhodat)))
+np.savetxt(outpath,eosdat,fmt='%.8e',delimiter=',',header='pressurec2,energy_densityc2,baryon_density',comments='')
 
-for i in range(len(rhodat)): # print table of EoS data
-
-	p = pdat[i]
-	logp = np.log(p)
-	mu = mudat[i]
-	rho = rhodat[i]
-
-	outfile1.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))
+with open(os.path.dirname(outpath)+'/params-'+os.path.basename(outpath),"w") as outfile:
+	outfile.write('gamma0,gamma1,gamma2,gamma3,pref,muref,xmax\n')
+	outfile.write('{0},{1},{2},{3},{4},{5},{6}\n'.format(g0,g1,g2,g3,pref,muref,xmax)) # record params used

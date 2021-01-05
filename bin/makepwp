@@ -9,6 +9,6 @@ outdir=$2
 i=0
 while IFS= read -r params
 do
-	geteos_pwp -p $params -t $i -i $outdir/ -o $outdir/
+	geteos_pwp -p $params -o "${outdir}/pwp_${i}.csv"
 	i=$(($i+1))
 done < <(tail -n +2 $infile)

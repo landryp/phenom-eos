@@ -6,16 +6,15 @@ __date__ = '02-2019'
 
 import numpy as np
 from optparse import OptionParser
+import os
 from phenomeos.get_pwp import pwpoly
 
 parser = OptionParser(usage=__usage__, description=__doc__)
-parser.add_option('-p', '--params', default='pwpparams.in', help='name of pwp parameters input file OR comma-separated input parameters [log10p1,Gamma1,Gamma2,Gamma3,...], DEFAULT=pwpparams.in', metavar='34.,1.,1.5,1.2')
+parser.add_option('-p', '--params', default='pwpparams.in', help='path to pwp parameters input file OR comma-separated input parameters (e.g. 34.4,3.0,2.9,2.8), DEFAULT="pwpparams.in"', metavar='log10p1,Gamma1,Gamma2,Gamma3')
 parser.add_option('-d', '--divrho', default=False, help='comma-separated dividing rest-mass densities [g/cm^3], DEFAULT="Automatic"', metavar='2.8e14,5.2e14')
 parser.add_option('-n', '--numpts', default=100, help='number of EoS data points to return, DEFAULT=100', metavar='100')
 parser.add_option('-m', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='1e17')
-parser.add_option('-i', '--indir', default='./pwp/in/', help='path to directory housing input parameters file, DEFAULT=./pwp/in/', metavar='./pwp/in/')
-parser.add_option('-o', '--outdir', default='./pwp/dat/', help='path to output directory, DEFAULT=./pwp/dat/', metavar='./pwp/dat/')
-parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
+parser.add_option('-o', '--outpath', default='pwp.csv', help='path to output directory, DEFAULT="pwp.csv"', metavar='/path/to/output.csv')
 parser.add_option('-P', '--pressures', default=False, help='comma-separated list of pressures [g/cm^3] at which to return the EoS data, DEFAULT=Auto', metavar=False)
 parser.add_option('-M', '--pmin', default=1., help='lowest pressure [g/cm^3] at which to return EoS data, DEFAULT=1', metavar=1.)
 
@@ -25,15 +24,12 @@ divrho = opts.divrho
 if not divrho==False: divrho = [float(div) for div in divrho.split(',')]
 numpts = float(opts.numpts)
 pmax = float(opts.pmax)
-indir = str(opts.indir)
-outdir = str(opts.outdir)
-tag = str(opts.tag)
+outpath = str(opts.outpath)
 plist = str(opts.pressures).split(',')
 if len(plist) > 1: plist = [float(ppt) for ppt in plist]
 pmin = float(opts.pmin)
 
-outfile1 = open(outdir+"eos/"+"pwp_"+tag+".csv","w")
-outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
+if not os.path.exists(os.path.dirname(outpath)): os.makedirs(os.path.dirname(outpath))
 
 # LOAD EOS PARAMETERS
 
@@ -48,10 +44,10 @@ if len(params)>1 : # read parameters if entered manually
 	
 else: # otherwise, read parameters from file
 
-	pwpparams = np.genfromtxt(indir+params[0],delimiter=',',skip_header=1)
+	pwpparams = np.genfromtxt(params[0],delimiter=',',skip_header=1)
 	segs = len(pwpparams)-1
 	
-	pwpparams = np.genfromtxt(indir+params[0],delimiter=',',names=True)
+	pwpparams = np.genfromtxt(params[0],delimiter=',',names=True)
 	
 	log10p1 = pwpparams['log10p1']
 	
@@ -68,21 +64,9 @@ rhodat, mudat, pdat = pwpoly(log10p1, Gamma, divrho, numpts, pmax, pmin, plist)
 
 # PRINT EOS DATA
 
-header = ','.join(Gname)
-header = 'log10p1,'+header
+eosdat = np.column_stack((np.array(pdat),np.array(mudat),np.array(rhodat)))
+np.savetxt(outpath,eosdat,fmt='%.8e',delimiter=',',header='pressurec2,energy_densityc2,baryon_density',comments='')
 
-body = ','.join(str(gamma) for gamma in Gamma)
-body = str(log10p1)+','+body
-
-outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
-outfile2.write(header+' \n')
-outfile2.write(body+' \n') # record params used
-
-for i in range(len(rhodat)): # print table of EoS data
-
-	p = pdat[i]
-	logp = np.log(p)
-	mu = mudat[i]
-	rho = rhodat[i]
-
-	outfile1.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))
+with open(os.path.dirname(outpath)+'/params-'+os.path.basename(outpath),"w") as outfile:
+	outfile.write('log10p1,'+','.join(Gname)+'\n')
+	outfile.write(str(log10p1)+','+','.join([str(gamma) for gamma in Gamma])+'\n') # record params used

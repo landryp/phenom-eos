@@ -4,9 +4,15 @@
 # USAGE: addcrusts ./eos/dir/ ./out/dir/
 
 indir=$1
-outdir=$2
+basenm=$2
+outdir=$3
 
-for file in ${indir}*.csv
+tag="cr"
+
+for file in ${indir}/${basenm}*.csv
 do
-	addcrust $(basename "$file") -d $indir -t cr -o $outdir
+
+	newname=$(echo $(basename "$file") | cut -f 1 -d '.')
+	addcrust ${indir}/$(basename "$file") -o "${outdir}/${newname}${tag}.csv"
+	
 done
