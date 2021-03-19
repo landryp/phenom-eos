@@ -6,6 +6,7 @@ __date__ = '02-2019'
 
 import numpy as np
 from optparse import OptionParser
+import os
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
 from phenomeos.get_css import css
