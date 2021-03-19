@@ -99,4 +99,4 @@ np.savetxt(outpath,eosdat,fmt='%.8e',delimiter=',',header='pressurec2,energy_den
 with open(os.path.dirname(outpath)+'/params-'+os.path.basename(outpath),"w") as outfile:
 	
 	outfile.write('p_tr,Delta_e,cqm2 \n')
-	outfile.write('{0},{1},{2} \n'.format(ptr,Dmu/mutr,cqm2)) # record params used
+	outfile.write('{0},{1},{2} \n'.format(ptr,Dmu,cqm2)) # record params used
