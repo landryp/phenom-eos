@@ -15,17 +15,15 @@ parser = OptionParser(usage=__usage__, description=__doc__)
 parser.add_option('-p', '--params', default='cssparams.in', help='name of css parameters input file OR comma-separated input parameters [p_tr (g/cm^3), Delta_e (e_tr), cqm2 (c^2)], DEFAULT=cssparams.in', metavar='5e14,0.6,0.9')
 parser.add_option('-n', '--numpts', default=100, help='number of EoS data points to return, DEFAULT=100', metavar='100')
 parser.add_option('-m', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='1e17')
-parser.add_option('-d', '--dir', default='./css/in/', help='path to directory housing low-density EoS, DEFAULT=./css/in/', metavar='./css/in/')
 parser.add_option('-o', '--outpath', default='css.csv', help='path to output directory, DEFAULT="css.csv"', metavar='/path/to/output.csv')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
 parser.add_option('-P', '--pressures', default=False, help='comma-separated list of pressures [g/cm^3] at which to return the EoS data, DEFAULT=Auto', metavar=False)
 
 opts, args = parser.parse_args()
-loweos = str(args[0])
+eospath = str(args[0])
 params = str(opts.params).split(',')
 numpts = float(opts.numpts)
 pmax = float(opts.pmax)
-eosdir = str(opts.dir)
 outpath = str(opts.outpath)
 tag = str(opts.tag)
 plist = str(opts.pressures).split(',')
@@ -47,7 +45,6 @@ else: # otherwise, read parameters from file
 
 # CALCULATE TRANSITION ENERGY DENSITY FROM LOW-DENSITY EOS AT TRANSITION PRESSURE
 
-eospath = eosdir+loweos
 eosdat = np.genfromtxt(eospath,names=True,delimiter=',') # load low-density EoS data
 lowrhodat = eosdat['baryon_density'] # rest-mass energy density in units of g/cm^3
 lowpdat = eosdat['pressurec2'] # pressure in units of g/cm^3
