@@ -4,10 +4,12 @@
 # USAGE: makecss inputparams.in
 
 infile=$1
+outdir=$2
+eos=$3
 
 i=0
 while IFS= read -r params
 do
-	geteos_css DDME2.csv -f $params -t $i
+	geteos_css $eos -p $params -o "${outdir}/css_${i}.csv"
 	i=$(($i+1))
 done < <(tail -n +2 $infile)

@@ -16,7 +16,7 @@ parser.add_option('-n', '--numpts', default=100, help='number of EoS data points
 parser.add_option('-m', '--pmax', default=1e17, help='maximum pressure to return [g/cm^3], DEFAULT=1e17', metavar='1e17')
 parser.add_option('-d', '--dir', default='./css/in/', help='path to directory housing low-density EoS, DEFAULT=./css/in/', metavar='./css/in/')
 parser.add_option('-i', '--indir', default='./css/in/', help='path to directory housing input parameters file, DEFAULT=./css/in/', metavar='./css/in/')
-parser.add_option('-o', '--outdir', default='./css/dat/', help='path to output directory, DEFAULT=./css/dat/', metavar='./css/dat/')
+parser.add_option('-o', '--outpath', default='css.csv', help='path to output directory, DEFAULT="css.csv"', metavar='/path/to/output.csv')
 parser.add_option('-t', '--tag', default='', help='tag for output data file, DEFAULT=""', metavar='""')
 parser.add_option('-P', '--pressures', default=False, help='comma-separated list of pressures [g/cm^3] at which to return the EoS data, DEFAULT=Auto', metavar=False)
 
@@ -27,13 +27,12 @@ numpts = float(opts.numpts)
 pmax = float(opts.pmax)
 eosdir = str(opts.dir)
 indir = str(opts.indir)
-outdir = str(opts.outdir)
+outpath = str(opts.outpath)
 tag = str(opts.tag)
 plist = str(opts.pressures).split(',')
 if len(plist) > 1: plist = [float(ppt) for ppt in plist]
 
-outfile1 = open(outdir+"eos/"+"css_"+tag+".csv","w")
-outfile2 = open(outdir+"params/"+"params_"+tag+".csv","w")
+if not os.path.exists(os.path.dirname(outpath)): os.makedirs(os.path.dirname(outpath))
 
 # LOAD EOS PARAMETERS
 
@@ -95,16 +94,13 @@ while j < len(pdat): # then save constant sound speed data above phase transitio
 	unimudat.append(mudat[j])
 	unirhodat.append(rhodat[j])
 	j = j+1
+
+# PRINT EOS DATA
+
+eosdat = np.column_stack((np.array(unipdat),np.array(unimudat),np.array(unirhodat)))
+np.savetxt(outpath,eosdat,fmt='%.8e',delimiter=',',header='pressurec2,energy_densityc2,baryon_density',comments='')
+
+with open(os.path.dirname(outpath)+'/params-'+os.path.basename(outpath),"w") as outfile:
 	
-outfile1.write('logpressurec2,pressurec2,energy_densityc2,baryon_density \n')
-outfile2.write('p_tr, e_tr, Delta_e, cqm2 \n')
-outfile2.write('{0},{1},{2},{3} \n'.format(ptr,mutr,Dmu,cqm2)) # record params used
-
-for i in range(len(unirhodat)): # print table of EoS data
-
-	p = unipdat[i]
-	logp = np.log(p)
-	mu = unimudat[i]
-	rho = unirhodat[i]
-
-	outfile1.write('{0},{1},{2},{3} \n'.format(logp,p,mu,rho))
+	outfile.write('p_tr,e_tr,Delta_e,cqm2 \n')
+	outfile.write('{0},{1},{2},{3} \n'.format(ptr,mutr,Dmu,cqm2)) # record params used
